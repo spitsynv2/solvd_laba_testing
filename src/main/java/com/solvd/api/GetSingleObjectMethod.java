@@ -1,4 +1,4 @@
-package com.zebrunner.carina.demo.api;
+package com.solvd.api;
 
 import com.zebrunner.carina.api.AbstractApiMethodV2;
 import com.zebrunner.carina.api.annotation.Endpoint;
@@ -14,12 +14,12 @@ import com.zebrunner.carina.api.http.HttpResponseStatusType;
  */
 
 @Endpoint(url = "${base_url}", methodType = HttpMethodType.GET)
-@ResponseTemplatePath(path = "api/objects/_get/rs_by_ids.json")
+@ResponseTemplatePath(path = "api/objects/_get/rs_single.json")
 @SuccessfulHttpStatus(status = HttpResponseStatusType.OK_200)
-public class GetObjectsByIdsMethod extends AbstractApiMethodV2 {
+public class GetSingleObjectMethod extends AbstractApiMethodV2 {
 
-    public GetObjectsByIdsMethod(){
-        replaceUrlPlaceholder("base_url", "https://api.restful-api.dev/objects?id=3&id=5&id=10");
+    public GetSingleObjectMethod(){
+        replaceUrlPlaceholder("base_url", "https://api.restful-api.dev/objects/7");
     }
 
     @Override

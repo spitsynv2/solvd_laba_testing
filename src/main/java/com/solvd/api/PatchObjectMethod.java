@@ -1,4 +1,4 @@
-package com.zebrunner.carina.demo.api;
+package com.solvd.api;
 
 import com.zebrunner.carina.api.AbstractApiMethodV2;
 import com.zebrunner.carina.api.annotation.Endpoint;
@@ -10,18 +10,18 @@ import com.zebrunner.carina.api.http.HttpResponseStatus;
 import com.zebrunner.carina.api.http.HttpResponseStatusType;
 
 /**
- * @author Vadym Spitsyn
- * @created 2025-03-13
- */
+  * @author Vadym Spitsyn
+  * @created 2025-03-13
+*/
 
-@Endpoint(url = "${base_url}", methodType = HttpMethodType.POST)
-@RequestTemplatePath(path = "api/objects/_post/rq.json")
-@ResponseTemplatePath(path = "api/objects/_post/rs.json")
+@Endpoint(url = "${base_url}", methodType = HttpMethodType.PATCH)
+@RequestTemplatePath(path = "api/objects/_patch/rq.json")
+@ResponseTemplatePath(path = "api/objects/_patch/rs.json")
 @SuccessfulHttpStatus(status = HttpResponseStatusType.OK_200)
-public class PostObjectMethod extends AbstractApiMethodV2 {
+public class PatchObjectMethod extends AbstractApiMethodV2 {
 
-    public PostObjectMethod(){
-        replaceUrlPlaceholder("base_url", "https://api.restful-api.dev/objects");
+    public PatchObjectMethod(){
+        replaceUrlPlaceholder("base_url", "https://api.restful-api.dev/objects/7");
     }
 
     @Override
