@@ -34,7 +34,7 @@ public class APITest implements IAbstractTest {
         LOGGER.info("testGetObjectsById");
         GetObjectsByIdsMethod getObjectsByIdsMethod = new GetObjectsByIdsMethod();
         getObjectsByIdsMethod.callAPIExpectSuccess();
-        getObjectsByIdsMethod.validateResponse(JSONCompareMode.STRICT, JsonCompareKeywords.ARRAY_CONTAINS.getKey());
+        getObjectsByIdsMethod.validateResponse();
     }
 
     @Test()
@@ -43,7 +43,7 @@ public class APITest implements IAbstractTest {
         LOGGER.info("testGetSingleObject");
         GetSingleObjectMethod getSingleObjectMethod = new GetSingleObjectMethod();
         getSingleObjectMethod.callAPIExpectSuccess();
-        getSingleObjectMethod.validateResponse(JSONCompareMode.STRICT, JsonCompareKeywords.ARRAY_CONTAINS.getKey());
+        getSingleObjectMethod.validateResponse();
     }
 
     @Test()
