@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.zebrunner.carina.demo;
+package com.solvd.carina.demo;
 
 import java.lang.invoke.MethodHandles;
 
