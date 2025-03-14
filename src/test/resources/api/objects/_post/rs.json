@@ -1,5 +1,5 @@
 {
-  "id": "7",
+  "id": "type:String",
   "name": "Apple MacBook Pro 16",
   "data": {
     "year": 2019,
@@ -7,5 +7,5 @@
     "CPU model": "Intel Core i9",
     "Hard disk size": "1 TB"
   },
-  "createdAt": "2022-11-21T20:06:23.986Z"
+  "createdAt": "regex:^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}([+-]\\d{2}:\\d{2}|Z)$"
 }
