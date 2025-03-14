@@ -1,0 +1,11 @@
+{
+  <#if name??>"name": "${name}",</#if>
+  "data": {
+    "year": 2019,
+    "price": 1849.99,
+    "CPU model": "Intel Core i9",
+    "Hard disk size": "1 TB"
+  }
+}
+2025-03-14 12:52:16 Messager [main-1] [ERROR] TEST [carina-solvd - testCreateObject] FAILED at [12:52:16 2025-03-14] - freemarker.template.TemplateNotFoundException: Template not found for name "api/object/_post/rq.json".
+The name was interpreted by this TemplateLoader: ClassTemplateLoader(resourceLoaderClass=com.zebrunner.carina.api.apitools.builder.MessageBuilder, basePackagePath="/").
