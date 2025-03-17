@@ -1,6 +1,10 @@
-package com.solvd.carina.demo;
+package com.solvd.api;
 
-import com.solvd.api.*;
+import com.solvd.api.objects.method.*;
+import com.solvd.api.objects.service.CreateObjectService;
+import com.solvd.api.store.GetAllCartsMethod;
+import com.solvd.api.store.GetProductByIdMethod;
+import com.solvd.api.store.GetProductsMethod;
 import com.zebrunner.carina.api.apitools.validation.JsonCompareKeywords;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
@@ -33,6 +37,9 @@ public class APITest implements IAbstractTest {
     public void testGetObjectsById() {
         LOGGER.info("testGetObjectsById");
         GetObjectsByIdsMethod getObjectsByIdsMethod = new GetObjectsByIdsMethod();
+        getObjectsByIdsMethod.addParameter("id","3");
+        getObjectsByIdsMethod.addParameter("id","5");
+        getObjectsByIdsMethod.addParameter("id","10");
         getObjectsByIdsMethod.callAPIExpectSuccess();
         getObjectsByIdsMethod.validateResponse();
     }
@@ -41,9 +48,36 @@ public class APITest implements IAbstractTest {
     @MethodOwner(owner = "Laba")
     public void testGetSingleObject() {
         LOGGER.info("testGetSingleObject");
-        GetSingleObjectMethod getSingleObjectMethod = new GetSingleObjectMethod();
+        GetSingleObjectMethod getSingleObjectMethod = new GetSingleObjectMethod("7");
         getSingleObjectMethod.callAPIExpectSuccess();
         getSingleObjectMethod.validateResponse();
+    }
+
+    @Test()
+    @MethodOwner(owner = "Laba")
+    public void testGetProducts() {
+        LOGGER.info("testGetProducts");
+        GetProductsMethod getProductsMethod = new GetProductsMethod();
+        getProductsMethod.callAPIExpectSuccess();
+        getProductsMethod.validateResponseAgainstSchema("api/store/_get/products_schema.json");
+    }
+
+    @Test()
+    @MethodOwner(owner = "Laba")
+    public void testGetSingleProduct() {
+        LOGGER.info("testGetSingleProduct");
+        GetProductByIdMethod getProductByIdMethod = new GetProductByIdMethod("1");
+        getProductByIdMethod.callAPIExpectSuccess();
+        getProductByIdMethod.validateResponseAgainstSchema("api/store/_get/single_product_schema.json");
+    }
+
+    @Test()
+    @MethodOwner(owner = "Laba")
+    public void testGetCarts() {
+        LOGGER.info("testGetCarts");
+        GetAllCartsMethod getAllCartsMethod = new GetAllCartsMethod();
+        getAllCartsMethod.callAPIExpectSuccess();
+        getAllCartsMethod.validateResponseAgainstSchema("api/store/_get/carts_schema.json");
     }
 
     @Test()
@@ -61,7 +95,8 @@ public class APITest implements IAbstractTest {
     @MethodOwner(owner = "Laba")
     public void testUpdateObject() {
         LOGGER.info("testUpdateObject");
-        PutObjectMethod putObjectMethod = new PutObjectMethod();
+        String objectId = CreateObjectService.getNewestObjectId();
+        PutObjectMethod putObjectMethod = new PutObjectMethod(objectId);
         putObjectMethod.setProperties("api/objects/objects.properties");
 
         putObjectMethod.callAPIExpectSuccess();
@@ -72,7 +107,8 @@ public class APITest implements IAbstractTest {
     @MethodOwner(owner = "Laba")
     public void testPatchObject() {
         LOGGER.info("testPatchObject");
-        PatchObjectMethod patchObjectMethod = new PatchObjectMethod();
+        String objectId = CreateObjectService.getNewestObjectId();
+        PatchObjectMethod patchObjectMethod = new PatchObjectMethod(objectId);
         patchObjectMethod.setProperties("api/objects/objects.properties");
 
         patchObjectMethod.callAPIExpectSuccess();
@@ -82,7 +118,9 @@ public class APITest implements IAbstractTest {
     @Test()
     @MethodOwner(owner = "Laba")
     public void testDeleteObject() {
-        DeleteObjectMethod deleteObjectMethod = new DeleteObjectMethod();
+        LOGGER.info("testDeleteObject");
+        String objectId = CreateObjectService.getNewestObjectId();
+        DeleteObjectMethod deleteObjectMethod = new DeleteObjectMethod(objectId);
 
         deleteObjectMethod.callAPIExpectSuccess();
         deleteObjectMethod.validateResponse();

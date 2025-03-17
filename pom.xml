@@ -5,11 +5,11 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.solvd</groupId>
-	<artifactId>api-task</artifactId>
+	<artifactId>solvd_laba_testing</artifactId>
 	<version>1.0</version>
 	<packaging>jar</packaging>
-	<name>Carina Demo</name>
-	<url>http://www.zebrunner.com/</url>
+	<name>Solvd Laba Testing</name>
+	<url>https://github.com/spitsynv2/solvd_laba_testing</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,7 +22,7 @@
 
 		<java.version>11</java.version>
 		<zebrunner-agent.version>1.9.8</zebrunner-agent.version>
-		<suite>helloWorld</suite>
+		<suite>APITest</suite>
 	</properties>
 
 	<!--repositories>

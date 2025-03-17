@@ -1,13 +1,13 @@
-package com.solvd.api;
+package com.solvd.api.objects.method;
 
-import com.zebrunner.carina.api.AbstractApiMethodV2;
+import com.solvd.api.AbstractMyAPIMethod;
 import com.zebrunner.carina.api.annotation.Endpoint;
 import com.zebrunner.carina.api.annotation.RequestTemplatePath;
 import com.zebrunner.carina.api.annotation.ResponseTemplatePath;
 import com.zebrunner.carina.api.annotation.SuccessfulHttpStatus;
 import com.zebrunner.carina.api.http.HttpMethodType;
-import com.zebrunner.carina.api.http.HttpResponseStatus;
 import com.zebrunner.carina.api.http.HttpResponseStatusType;
+import com.zebrunner.carina.utils.config.Configuration;
 
 /**
  * @author Vadym Spitsyn
@@ -18,16 +18,10 @@ import com.zebrunner.carina.api.http.HttpResponseStatusType;
 @RequestTemplatePath(path = "api/objects/_post/rq.json")
 @ResponseTemplatePath(path = "api/objects/_post/rs.json")
 @SuccessfulHttpStatus(status = HttpResponseStatusType.OK_200)
-public class PostObjectMethod extends AbstractApiMethodV2 {
+public class PostObjectMethod extends AbstractMyAPIMethod {
 
     public PostObjectMethod(){
-        replaceUrlPlaceholder("base_url", "https://api.restful-api.dev/objects");
-    }
-
-    @Override
-    public void expectResponseStatus(HttpResponseStatus status) {
-        this.request.expect().statusCode(status.getCode());
-        //this.request.expect().statusLine(Matchers.containsString(status.getMessage()));
+        replaceUrlPlaceholder("base_url", Configuration.getRequired("api_url_task1"));
     }
 
 }
