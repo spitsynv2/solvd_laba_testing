@@ -19,17 +19,16 @@ public class ComputerTabletsNetworkPage extends AbstractPage {
 
     public ComputerTabletsNetworkPage(WebDriver driver) {
         super(driver);
-        waitForJSToLoad();
-        setPageURL("b/Computers-Tablets-Network-Hardware/58058/bn_1865247");
+        waitForJSToLoad(10);
         if (computerTabletsNetworkTitle.getText().equals("Computers, Tablets & Network Hardware")){
             setUiLoadedMarker(computerTabletsNetworkTitle);
         }
     }
 
     public LaptopsNetbooksPage openLaptopsNetbooksPage(){
-        laptopsNetbooksImage.hover();
-        laptopsNetbooksImage.clickIfPresent(3);
-        return new LaptopsNetbooksPage(driver);
+        laptopsNetbooksImage.scrollTo();
+        laptopsNetbooksImage.clickIfPresent(10);
+        return new LaptopsNetbooksPage(getDriver());
     }
 
 }

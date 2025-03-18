@@ -1,18 +1,24 @@
 package com.solvd.web.gui.pages.ebay;
 
 import com.zebrunner.carina.webdriver.decorator.ExtendedWebElement;
-import com.zebrunner.carina.webdriver.decorator.PageOpeningStrategy;
 import com.zebrunner.carina.webdriver.gui.AbstractPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.invoke.MethodHandles;
+
 
 /**
  * @author Vadym Spitsyn
  * @created 2025-03-17
  */
 public class EbayHomePage extends AbstractPage {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @FindBy(xpath = "//*[@id=\"vl-flyout-nav\"]/ul/li[4]/div[2]/div[1]/nav[1]/ul/li[1]/a")
+    @FindBy(id = "gdpr-banner-accept")
     private ExtendedWebElement acceptCookies;
 
     @FindBy(xpath = "//*[@id=\"gh-logo\"]")
@@ -26,19 +32,26 @@ public class EbayHomePage extends AbstractPage {
 
     public EbayHomePage(WebDriver driver) {
         super(driver);
-        waitForJSToLoad();
         setUiLoadedMarker(ebayLogo);
     }
 
     @Override
     public void open() {
         super.open();
-        acceptCookies.clickIfPresent(3);
+        waitForJSToLoad();
+        waitUntil(ExpectedConditions.elementToBeClickable(acceptCookies.getBy()),5);
+        acceptCookies.hover();
+        acceptCookies.clickIfPresent(5);
     }
 
     public ComputerTabletsNetworkPage openComputerTabletsNetworkPage(){
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            LOGGER.error(e.getMessage());
+        }
         electronicsElement.hover();
-        computerTabletsNetworkElement.clickIfPresent(3);
-        return new ComputerTabletsNetworkPage(driver);
+        computerTabletsNetworkElement.clickIfPresent(10);
+        return new ComputerTabletsNetworkPage(getDriver());
     }
 }
