@@ -22,21 +22,24 @@ public class LaptopsNetbooksPage extends AbstractPage {
 
     public LaptopsNetbooksPage(WebDriver driver) {
         super(driver);
-        waitForJSToLoad();
-        setPageURL("b/PC-Laptops-Netbooks/177/bn_317584");
+        waitForJSToLoad(10);
         if (laptopsNetbooksPageTitle.getText().equals("PC Laptops & Netbooks")){
             setUiLoadedMarker(laptopsNetbooksPageTitle);
         }
     }
 
     public ItemPage openFirstItemPage(){
-        firstItemTitle.hover();
-        firstItemTitle.clickIfPresent(3);
-        return new ItemPage(driver);
+        firstItemTitle.scrollTo();
+        firstItemTitle.clickIfPresent(10);
+        return new ItemPage(getDriver());
     }
 
     public String getFirstItemTitleText(){
-        return firstItemTitle.getText();
+        if(firstItemTitle.isElementPresent(10)){
+            return firstItemTitle.getText();
+        }else {
+            return "First element is not present";
+        }
     }
 
 }
