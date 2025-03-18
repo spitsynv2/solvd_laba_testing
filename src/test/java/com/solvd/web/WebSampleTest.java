@@ -38,7 +38,7 @@ public class WebSampleTest implements IAbstractTest {
 
     @Test
     @MethodOwner(owner = "Laba")
-    public void test() {
+    public void CompareFirstLaptopOrTabletNameTest() {
         EbayHomePage ebayHomePage = new EbayHomePage(getDriver());
         ebayHomePage.open();
         Assert.assertTrue(ebayHomePage.isPageOpened(), "Home page is not opened!");
