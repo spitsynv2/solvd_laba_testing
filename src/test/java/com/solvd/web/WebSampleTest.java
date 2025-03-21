@@ -19,11 +19,13 @@ import com.solvd.web.gui.pages.ebay.ComputerTabletsNetworkPage;
 import com.solvd.web.gui.pages.ebay.EbayHomePage;
 import com.solvd.web.gui.pages.ebay.ItemPage;
 import com.solvd.web.gui.pages.ebay.LaptopsNetbooksPage;
+import com.solvd.web.gui.pages.ebayv2.*;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
@@ -54,6 +56,31 @@ public class WebSampleTest implements IAbstractTest {
         ItemPage itemPage = laptopsNetbooksPage.openFirstItemPage();
         Assert.assertTrue(itemPage.isPageOpened(), "First item page is not opened!");
         Assert.assertEquals(firstItemText, itemPage.getItemTitleText(), "Items titles are not equal");
+    }
+
+    @Test
+    @MethodOwner(owner = "Laba")
+    @Parameters({"category", "categoryPageTitle"})
+    public void categoryPageTitleCompareTest(String category, String categoryPageTitle) {
+        EbayHomePageV2 ebayHomePageV2 = new EbayHomePageV2(getDriver());
+        ebayHomePageV2.open();
+
+        CategoryPage categoryPage = ebayHomePageV2.selectCategory(category);
+        Assert.assertEquals(categoryPageTitle,categoryPage.getCategoryPageTitle());
+    }
+
+    @Test
+    @MethodOwner(owner = "Laba")
+    @Parameters({"firstName", "lastName", "city", "email", "phone"})
+    public void findAndCheckOutItemTest(String firstName, String lastName, String city, String email, String phone) {
+        EbayHomePageV2 ebayHomePageV2 = new EbayHomePageV2(getDriver());
+        ebayHomePageV2.open();
+
+        SearchResultPage searchResultPage = ebayHomePageV2.searchForItem("book","Books");
+        ItemPageV2 itemPage = searchResultPage.selectFirstResultItem();
+        Assert.assertTrue(itemPage.isPageOpened(), "Item page is not opened!");
+        CheckoutPage checkoutPage = itemPage.goToCheckOutPage();
+        checkoutPage.checkOut(firstName,lastName,city,email,phone);
     }
 
 }

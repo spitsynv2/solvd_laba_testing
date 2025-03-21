@@ -10,9 +10,8 @@ import org.openqa.selenium.support.FindBy;
  * @created 2025-03-18
  */
 public class ItemPage extends AbstractPage {
-                     //*[@id="mainContent"]/div[1]/div[2]/h1/span
-    @FindBy(className = "x-item-title__mainTitle")
 
+    @FindBy(className = "x-item-title__mainTitle")
     private ExtendedWebElement itemTitle;
 
     public ItemPage(WebDriver driver) {
