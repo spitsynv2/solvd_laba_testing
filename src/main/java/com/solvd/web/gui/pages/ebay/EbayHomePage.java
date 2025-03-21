@@ -1,6 +1,7 @@
 package com.solvd.web.gui.pages.ebay;
 
 import com.zebrunner.carina.webdriver.decorator.ExtendedWebElement;
+import com.zebrunner.carina.webdriver.decorator.PageOpeningStrategy;
 import com.zebrunner.carina.webdriver.gui.AbstractPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.FindBy;
@@ -32,6 +33,7 @@ public class EbayHomePage extends AbstractPage {
 
     public EbayHomePage(WebDriver driver) {
         super(driver);
+        setPageOpeningStrategy(PageOpeningStrategy.BY_ELEMENT);
         setUiLoadedMarker(ebayLogo);
     }
 
@@ -39,14 +41,13 @@ public class EbayHomePage extends AbstractPage {
     public void open() {
         super.open();
         waitForJSToLoad();
-        waitUntil(ExpectedConditions.elementToBeClickable(acceptCookies.getBy()),5);
-        acceptCookies.hover();
+        waitUntil(ExpectedConditions.visibilityOfElementLocated(acceptCookies.getBy()),5);
         acceptCookies.clickIfPresent(5);
     }
 
     public ComputerTabletsNetworkPage openComputerTabletsNetworkPage(){
         try {
-            Thread.sleep(500);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             LOGGER.error(e.getMessage());
         }

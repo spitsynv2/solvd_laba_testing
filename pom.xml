@@ -22,7 +22,7 @@
 
 		<java.version>11</java.version>
 		<zebrunner-agent.version>1.9.8</zebrunner-agent.version>
-		<suite>APITest</suite>
+		<suite>WebAndDataProviderTest</suite>
 	</properties>
 
 	<!--repositories>
