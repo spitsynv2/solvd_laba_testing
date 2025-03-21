@@ -17,7 +17,7 @@ import java.lang.invoke.MethodHandles;
 public class CategoryPage extends AbstractPage {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @FindBy(className = "textual-display page-title")
+    @FindBy(xpath = "/html/body/div[2]/div[2]/section[1]/h1")
     private ExtendedWebElement categoryPageTitle;
 
     public CategoryPage(WebDriver driver) {
