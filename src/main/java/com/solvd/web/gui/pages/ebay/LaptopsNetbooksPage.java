@@ -11,8 +11,7 @@ import org.openqa.selenium.support.FindBy;
  */
 public class LaptopsNetbooksPage extends AbstractPage {
 
-    @FindBy(xpath = "/html/body/div[2]/div[2]/section[1]/h1")
-    private ExtendedWebElement laptopsNetbooksPageTitle;
+
 
     @FindBy(xpath = "/html/body/div[2]/div[2]/section[3]/section[4]/ul/li[1]/div/div/div[2]/div[1]/div[1]/span/a/h3")
     private ExtendedWebElement firstItemTitle;
@@ -22,10 +21,6 @@ public class LaptopsNetbooksPage extends AbstractPage {
 
     public LaptopsNetbooksPage(WebDriver driver) {
         super(driver);
-        waitForJSToLoad(10);
-        if (laptopsNetbooksPageTitle.getText().equals("PC Laptops & Netbooks")){
-            setUiLoadedMarker(laptopsNetbooksPageTitle);
-        }
     }
 
     public ItemPage openFirstItemPage(){

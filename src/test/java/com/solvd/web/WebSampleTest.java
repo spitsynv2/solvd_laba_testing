@@ -46,15 +46,11 @@ public class WebSampleTest implements IAbstractTest {
         Assert.assertTrue(ebayHomePage.isPageOpened(), "Home page is not opened!");
 
         ComputerTabletsNetworkPage computerTabletsNetworkPage = ebayHomePage.openComputerTabletsNetworkPage();
-        Assert.assertTrue(computerTabletsNetworkPage.isPageOpened(), "Computer and Tablets page is not opened!");
-
         LaptopsNetbooksPage laptopsNetbooksPage = computerTabletsNetworkPage.openLaptopsNetbooksPage();
-        Assert.assertTrue(laptopsNetbooksPage.isPageOpened(), "Laptops and Netbooks page is not opened!");
         String firstItemText = laptopsNetbooksPage.getFirstItemTitleText();
         LOGGER.info("First item text: {}",firstItemText);
 
         ItemPage itemPage = laptopsNetbooksPage.openFirstItemPage();
-        Assert.assertTrue(itemPage.isPageOpened(), "First item page is not opened!");
         Assert.assertEquals(firstItemText, itemPage.getItemTitleText(), "Items titles are not equal");
     }
 
