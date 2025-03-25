@@ -1,8 +1,12 @@
-package com.solvd.web.gui.pages.ebayv2;
+package com.solvd.web.gui.pages.desktop.ebay;
 
+import com.solvd.web.gui.pages.common.ebay.CategoryPageBase;
+import com.solvd.web.gui.pages.common.ebay.EbayHomePageBase;
+import com.solvd.web.gui.pages.common.ebay.SearchResultPageBase;
+import com.zebrunner.carina.utils.factory.DeviceType;
 import com.zebrunner.carina.webdriver.decorator.ExtendedWebElement;
-import com.zebrunner.carina.webdriver.gui.AbstractPage;
 import com.zebrunner.carina.webdriver.locator.Context;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -16,8 +20,12 @@ import java.util.List;
  * @author Vadym Spitsyn
  * @created 2025-03-20
  */
-public class EbayHomePageV2 extends AbstractPage {
+@DeviceType(pageType = DeviceType.Type.DESKTOP, parentClass = EbayHomePageBase.class)
+public class EbayHomePage extends EbayHomePageBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+    @FindBy(id = "gdpr-banner")
+    private ExtendedWebElement cookiesBanner;
 
     @FindBy(id = "gdpr-banner-accept")
     private ExtendedWebElement acceptCookies;
@@ -39,16 +47,26 @@ public class EbayHomePageV2 extends AbstractPage {
     @FindBy(xpath = "//*[@id=\"gh-search-btn\"]/span")
     private ExtendedWebElement searchButton;
 
-    public EbayHomePageV2(WebDriver driver) {
+    public EbayHomePage(WebDriver driver) {
         super(driver);
     }
 
-    public CategoryPage selectCategory(String categoryName) {
-        CategoryPage categoryPage = null;
+    @Override
+    public void open() {
+        super.open();
+        waitForJSToLoad(10);
+        if (acceptCookies.isElementPresent(5)){
+            waitUntil(ExpectedConditions.visibilityOf(acceptCookies),5);
+            acceptCookies.sendKeys(Keys.ENTER);
+        }
+    }
+
+    public CategoryPageBase selectCategory(String categoryName) {
+        CategoryPageBase categoryPage = null;
         for (ExtendedWebElement category : categoryMenu) {
             if(category.getText().equals(categoryName)){
                 category.click();
-                categoryPage = new CategoryPage(getDriver());
+                categoryPage = initPage(getDriver(), CategoryPageBase.class);
                 return categoryPage;
             }
         }
@@ -56,18 +74,10 @@ public class EbayHomePageV2 extends AbstractPage {
         return categoryPage;
     }
 
-    @Override
-    public void open() {
-        super.open();
-        waitForJSToLoad();
-        waitUntil(ExpectedConditions.visibilityOfElementLocated(acceptCookies.getBy()),5);
-        acceptCookies.clickIfPresent(5);
-    }
-
-    public SearchResultPage searchForItem(String searchText,String itemEbayType) {
+    public SearchResultPageBase searchForItem(String searchText,String itemEbayType) {
         searchInputField.type(searchText);
         selectMenu.select(itemEbayType);
-        searchButton.clickIfPresent(5);
-        return new SearchResultPage(getDriver());
+        searchButton.click(5);
+        return initPage(getDriver(), SearchResultPageBase.class);
     }
 }

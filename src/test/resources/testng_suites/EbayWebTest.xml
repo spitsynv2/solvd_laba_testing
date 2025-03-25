@@ -1,0 +1,15 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite verbose="1" name="WebTests suite" parallel="methods">
+
+    <test name="Ebay + DataProvider + Crypto Tests">
+        <classes>
+            <class name="com.solvd.web.EbayWebDesktopTests">
+                <methods>
+                    <include name="itemTitleEqualsTest"/>
+                    <include name="checkoutItemWithEncryptedDataTest"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+
+</suite>
