@@ -19,7 +19,7 @@ import java.lang.invoke.MethodHandles;
  * @author Vadym Spitsyn
  * @created 2025-03-14
  */
-public class APITest implements IAbstractTest {
+public class APITests implements IAbstractTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
