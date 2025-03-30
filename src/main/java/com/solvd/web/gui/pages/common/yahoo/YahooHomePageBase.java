@@ -13,4 +13,6 @@ public abstract class YahooHomePageBase extends AbstractPage {
 
     public abstract FinancePageBase goToFinancePage();
 
+    public abstract YahooHomePageLocalBase goToLocalPage();
+
 }
