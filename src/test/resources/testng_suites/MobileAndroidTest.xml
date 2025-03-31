@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite verbose="1" name="MobileTest suite" parallel="methods">
+
+    <test name="Mobile test">
+        <classes>
+            <class name="com.solvd.mobile.MobileAndroidTest">
+                <methods>
+                    <include name="testUIElements"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+
+</suite>
