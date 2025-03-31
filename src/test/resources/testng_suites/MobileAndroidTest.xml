@@ -5,7 +5,8 @@
         <classes>
             <class name="com.solvd.mobile.MobileAndroidTest">
                 <methods>
-                    <include name="testUIElements"/>
+                    <include name="testUIElementsCreate"/>
+                    <include name="testUIElementsDelete"/>
                 </methods>
             </class>
         </classes>
