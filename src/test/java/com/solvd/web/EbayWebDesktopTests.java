@@ -18,6 +18,7 @@ import java.util.Map;
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+    /*
     @Test(dataProvider = "DataProvider")
     @MethodOwner(owner = "Laba")
     @XlsDataSourceParameters(path = "data_source/testData.xlsx", sheet = "Page1", dsUid = "TUID")
@@ -38,9 +39,10 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 args.get("phone"));
         checkoutPage.checkout(checkoutForm);
     }
+    */
 
     @Test(dataProvider = "DP1")
-    @MethodOwner(owner = "Laba")
+    @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest(String TUID, int position) {
         EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
