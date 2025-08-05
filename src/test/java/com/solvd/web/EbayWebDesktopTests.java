@@ -10,6 +10,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WrapsDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -18,6 +19,8 @@ import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,10 +52,11 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest(String TUID, int position) {
+    public void itemTitleEqualsTest(String TUID, int position) throws MalformedURLException {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito");
-        ChromeDriver driver = new ChromeDriver(options);
+
+        RemoteWebDriver driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
 
         EbayHomePageBase ebayHomePage = initPage(driver,EbayHomePageBase.class);
         ebayHomePage.open();
