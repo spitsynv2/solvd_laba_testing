@@ -6,6 +6,10 @@ import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
 import com.zebrunner.carina.dataprovider.annotations.XlsDataSourceParameters;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WrapsDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -13,6 +17,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
@@ -44,7 +50,11 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest(String TUID, int position) {
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--incognito");
+        ChromeDriver driver = new ChromeDriver(options);
+
+        EbayHomePageBase ebayHomePage = initPage(driver,EbayHomePageBase.class);
         ebayHomePage.open();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
@@ -66,4 +76,5 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 {"TUID: Test position2",2}
         };
     }
+
 }
