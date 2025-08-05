@@ -55,6 +55,8 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTest(String TUID, int position) throws MalformedURLException {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito");
+        options.addArguments("--no-sandbox");          // Required for container environments
+        options.addArguments("--disable-gpu");           // GPU not available in headless mode
 
         RemoteWebDriver driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
 
