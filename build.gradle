@@ -5,12 +5,6 @@ plugins {
 group = 'com.solvd'
 version = '1.0'
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
-
 repositories {
     mavenCentral()
     // Uncomment if using Zebrunner snapshot repo
@@ -73,7 +67,15 @@ test {
     dependsOn copyZebrunnerAgent
     jvmArgs "-javaagent:${buildDir}/agent/zebrunner-agent.jar"
     systemProperty "zebrunner.reporting.enabled", "true"
+
     testLogging {
-        events "passed", "skipped", "failed"
+        // Show info about all test events:
+        events "started", "passed", "skipped", "failed", "standardOut", "standardError"
+
+        // Show full stack traces for failures and errors
+        exceptionFormat "full"
+
+        // Show standard out and error streams immediately
+        showStandardStreams = true
     }
 }
