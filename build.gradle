@@ -1,0 +1,79 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.solvd'
+version = '1.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+
+repositories {
+    mavenCentral()
+    // Uncomment if using Zebrunner snapshot repo
+    // maven { url 'https://public-nexus.zebrunner.com/repository/ce-snapshots/' }
+}
+
+ext {
+    carinaCoreVersion = '1.3.0'
+    carinaDataproviderVersion = '1.2.4'
+    carinaApiVersion = '1.2.4'
+    carinaAwsS3Version = '1.2.5'
+    carinaAzureVersion = '1.2.5'
+    carinaAppcenterVersion = '1.2.7'
+    zebrunnerAgentVersion = '1.9.8'
+    suiteName = project.hasProperty('suite') ? project.getProperty('suite') : 'WebTest'
+}
+
+dependencies {
+    implementation "com.zebrunner:carina-core:$carinaCoreVersion"
+    implementation("com.zebrunner:carina-dataprovider:$carinaDataproviderVersion") {
+        exclude group: 'org.testng', module: '*'
+    }
+    implementation "com.zebrunner:carina-api:$carinaApiVersion"
+    implementation "com.zebrunner:carina-aws-s3:$carinaAwsS3Version"
+    implementation "com.zebrunner:carina-azure:$carinaAzureVersion"
+    implementation "com.zebrunner:carina-appcenter:$carinaAppcenterVersion"
+
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+
+    implementation 'net.bytebuddy:byte-buddy:1.14.5'
+    implementation 'org.mybatis:mybatis:3.5.6'
+    implementation 'org.postgresql:postgresql:42.5.5'
+    testImplementation 'org.testng:testng:7.9.0'
+}
+
+configurations {
+    zebrunnerAgent
+}
+
+dependencies {
+    zebrunnerAgent "com.zebrunner:agent-core:$zebrunnerAgentVersion"
+}
+
+// Copy Zebrunner agent to a specific directory
+tasks.register('copyZebrunnerAgent', Copy) {
+    from configurations.zebrunnerAgent
+    into "$buildDir/agent"
+    rename { 'zebrunner-agent.jar' }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Run tests with agent and suite
+test {
+    useTestNG() {
+        suites "src/test/resources/testing_suites/EbayWebTest.xml"
+    }
+
+    dependsOn copyZebrunnerAgent
+    jvmArgs "-javaagent:${buildDir}/agent/zebrunner-agent.jar"
+    systemProperty "zebrunner.reporting.enabled", "true"
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

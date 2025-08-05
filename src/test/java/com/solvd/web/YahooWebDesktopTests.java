@@ -3,6 +3,8 @@ package com.solvd.web;
 import com.solvd.web.gui.pages.common.yahoo.*;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
