@@ -10,6 +10,7 @@ import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
+import org.openqa.selenium.support.decorators.Decorated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -52,7 +53,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
 
-        logCurrentDriverInfo();
+        logCurrentDriverInfoUnwrapped();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
 
@@ -74,7 +75,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         };
     }
 
-    public void logCurrentDriverInfo() {
+    public void logCurrentDriverInfoUnwrapped() {
         WebDriver driver = getDriver();  // get default driver
 
         // Find matching CarinaDriver by comparing WebDriver references
@@ -93,18 +94,26 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
             LOGGER.warn("Original Capabilities: " + originalCapabilities);
 
-            if (driver instanceof RemoteWebDriver) {
-                SessionId sessionId = ((RemoteWebDriver) driver).getSessionId();
+            // Unwrap driver if decorated
+            WebDriver unwrappedDriver = driver;
+            if (driver instanceof Decorated<?>) {
+                unwrappedDriver = (WebDriver) ((Decorated<?>) driver).getOriginal();
+            }
+
+            if (unwrappedDriver instanceof RemoteWebDriver) {
+                RemoteWebDriver remoteDriver = (RemoteWebDriver) unwrappedDriver;
+                SessionId sessionId = remoteDriver.getSessionId();
                 LOGGER.warn("Session ID: " + sessionId);
 
-                Capabilities actualCaps = ((RemoteWebDriver) driver).getCapabilities();
+                Capabilities actualCaps = remoteDriver.getCapabilities();
                 LOGGER.warn("Actual Capabilities: " + actualCaps);
             } else {
-                LOGGER.warn("Driver is not a RemoteWebDriver instance");
+                LOGGER.warn("Unwrapped driver is not a RemoteWebDriver instance");
             }
         } else {
             LOGGER.warn("Could not find CarinaDriver associated with current WebDriver instance");
         }
     }
+
 
 }
