@@ -56,17 +56,29 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest(String TUID, int position) {
+    public void itemTitleEqualsTest(String TUID, int position) throws Exception {
         ChromeOptions options = new ChromeOptions();
+
+        // Add your desired arguments
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--test-type");
+        options.addArguments("--start-maximized");
+        options.addArguments("--ignore-ssl-errors");
         options.addArguments("--incognito");
+
+        // Add capabilities to options directly (ChromeOptions extends MutableCapabilities)
+        options.setCapability("acceptInsecureCerts", true);
+
+        // IMPORTANT: Create RemoteWebDriver with full capabilities
+        // You need to pass the remote Selenium server URL, e.g. "http://localhost:4444/wd/hub"
 
         RemoteWebDriver remoteDriver = new RemoteWebDriver(options);
 
-        // Register it in the DRIVERS_POOL
+        // Register driver manually in Carina's driver pool
         CarinaDriver carinaDriver = new CarinaDriver(
                 IDriverPool.DEFAULT,
                 remoteDriver,
-                IDriverPool.getNullDevice(), // or your Device
+                IDriverPool.getNullDevice(),
                 TestPhase.getActivePhase(),
                 Thread.currentThread().getId(),
                 options
@@ -78,20 +90,20 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         logCurrentDriverInfoUnwrapped();
 
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        // Now use Carina's getDriver() or your remoteDriver directly as needed
+        EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         ebayHomePage.open();
 
         logCurrentDriverInfoUnwrapped();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
         String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
 
         ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
         String expectedItemName = itemPageBase.getItemName();
 
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+        Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
     }
 
     public void logCurrentDriverInfoUnwrapped() {
