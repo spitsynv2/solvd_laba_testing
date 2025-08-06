@@ -4,6 +4,9 @@ import com.solvd.web.gui.pages.common.ebay.*;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
+import com.zebrunner.carina.utils.common.CommonUtils;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -11,6 +14,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -41,7 +46,46 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest(String TUID, int position) {
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        int maxAttempts = 20;
+        int pauseSeconds = 5;
+        ChromeDriver driver = null;
+        int attempt = 0;
+
+        while (attempt <= maxAttempts) {
+            try {
+                ChromeOptions options = new ChromeOptions();
+                options.addArguments("--incognito");
+
+                driver = new ChromeDriver(options);
+
+                // Set download behavior using CDP
+                Map<String, Object> params = new HashMap<>();
+                params.put("behavior", "allow");
+                params.put("downloadPath", "/downloads");
+
+                driver.executeCdpCommand("Page.setDownloadBehavior", params);
+
+                // ✅ Success! Break the retry loop
+                break;
+
+            } catch (Exception e) {
+                if (driver != null) {
+                    try {
+                        driver.quit(); // 🧹 Clean up failed browser
+                    } catch (Exception ignored) {}
+                }
+
+                if (attempt == maxAttempts) {
+                    throw new RuntimeException("Failed to create WebDriver after retries", e);
+                }
+
+                LOGGER.warn("Attempt {} failed: {}. Retrying in {}s...", attempt, e.getMessage(), pauseSeconds);
+                CommonUtils.pause(pauseSeconds);
+                attempt++;
+            }
+        }
+
+        EbayHomePageBase ebayHomePage = initPage(driver,EbayHomePageBase.class);
         ebayHomePage.open();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
@@ -53,6 +97,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String expectedItemName = itemPageBase.getItemName();
 
         Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+        driver.quit();
     }
 
     @DataProvider(name = "DP1")
