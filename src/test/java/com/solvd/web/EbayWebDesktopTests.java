@@ -160,7 +160,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     }
 
     public void sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
-        String url = String.format("http://%s/session/%s/goog/cdp/execute", selenoidHost, sessionId);
+        String url = String.format("%s/session/%s/goog/cdp/execute", selenoidHost, sessionId);
         LOGGER.warn(url);
 
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
