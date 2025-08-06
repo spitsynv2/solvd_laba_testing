@@ -11,6 +11,7 @@ import com.zebrunner.carina.webdriver.TestPhase;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -18,6 +19,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,23 +55,17 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTest(String TUID, int position) {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito");
-        ChromeDriver customDriver = new ChromeDriver(options);
-        DesiredCapabilities caps = new DesiredCapabilities();
 
-        // Set download behavior using CDP
-        Map<String, Object> params = new HashMap<>();
-        params.put("behavior", "allow");
-        params.put("downloadPath", "/downloads");
-        customDriver.executeCdpCommand("Page.setDownloadBehavior", params);
+        RemoteWebDriver remoteDriver = new RemoteWebDriver(options);
 
         // Register it in the DRIVERS_POOL
         CarinaDriver carinaDriver = new CarinaDriver(
                 IDriverPool.DEFAULT,
-                customDriver,
+                remoteDriver,
                 IDriverPool.getNullDevice(), // or your Device
                 TestPhase.getActivePhase(),
                 Thread.currentThread().getId(),
-                caps
+                options
         );
 
         IDriverPool.DRIVERS_POOL
