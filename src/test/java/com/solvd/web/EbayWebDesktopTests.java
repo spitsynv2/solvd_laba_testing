@@ -71,8 +71,6 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         RemoteWebDriver remoteDriver = new RemoteWebDriver(seleniumUrl, options);
 
-
-
         // Register it in the DRIVERS_POOL
         CarinaDriver carinaDriver = new CarinaDriver(
                 IDriverPool.DEFAULT,
@@ -162,7 +160,8 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     }
 
     public void sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
-        String url = String.format("http://%s/wd/hub/session/%s/goog/cdp/execute", selenoidHost, sessionId);
+        String url = String.format("http://%s/session/%s/goog/cdp/execute", selenoidHost, sessionId);
+        LOGGER.warn(url);
 
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("POST");
