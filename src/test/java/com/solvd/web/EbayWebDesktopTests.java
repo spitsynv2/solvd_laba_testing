@@ -4,17 +4,14 @@ import com.solvd.web.gui.pages.common.ebay.*;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
-import com.zebrunner.carina.utils.common.CommonUtils;
 import com.zebrunner.carina.webdriver.CarinaDriver;
 import com.zebrunner.carina.webdriver.IDriverPool;
-import com.zebrunner.carina.webdriver.TestPhase;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.HasDevTools;
+import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.SessionId;
 import org.openqa.selenium.support.decorators.Decorated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,79 +19,41 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.nio.charset.StandardCharsets;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    /*
-    @Test(dataProvider = "DataProvider")
-    @MethodOwner(owner = "Laba")
-    @XlsDataSourceParameters(path = "data_source/testData.xlsx", sheet = "Page1", dsUid = "TUID")
-    public void checkoutItemWithEncryptedDataTest(Map<String, String> args) {
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        SearchResultPageBase searchResultPage = ebayHomePage.searchForItem(args.get("searchText"),args.get("category"));
-        ItemPageBase itemPage = searchResultPage.selectFirstResultItem();
-        CheckoutPageBase checkoutPage = itemPage.goToCheckOutPage();
-        CheckoutForm checkoutForm = new CheckoutForm(
-                args.get("country"),
-                args.get("firstName"),
-                args.get("lastName"),
-                args.get("city"),
-                args.get("email"),
-                args.get("countryCode"),
-                args.get("phone"));
-        checkoutPage.checkout(checkoutForm);
-    }
-    */
+    private static final String EXECUTOR_URL = "http://localhost:4444";  // hardcoded ChromeDriver URL & port
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest(String TUID, int position) throws Exception {
-        ChromeOptions options = new ChromeOptions();
+        WebDriver driver = getDriver();
 
-        // Add your desired arguments
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--test-type");
-        options.addArguments("--start-maximized");
-        options.addArguments("--ignore-ssl-errors");
-        options.addArguments("--incognito");
+        // unwrap decorated driver
+        while (driver instanceof Decorated<?>) {
+            driver = (WebDriver) ((Decorated<?>) driver).getOriginal();
+        }
 
-        // Add capabilities to options directly (ChromeOptions extends MutableCapabilities)
-        options.setCapability("acceptInsecureCerts", true);
+        // augment to RemoteWebDriver if needed
+        driver = new Augmenter().augment(driver);
 
-        // IMPORTANT: Create RemoteWebDriver with full capabilities
-        // You need to pass the remote Selenium server URL, e.g. "http://localhost:4444/wd/hub"
+        // Cast to RemoteWebDriver for session info
+        RemoteWebDriver remoteDriver = (RemoteWebDriver) driver;
 
-        RemoteWebDriver remoteDriver = new RemoteWebDriver(options);
+        // Raw CDP command using manual HTTP call
+        String networkEnableResponse = RawCDPCommandSender.sendCommand(remoteDriver, "Network.enable", "{}");
+        LOGGER.info("Network.enable CDP response: " + networkEnableResponse);
 
-        // Register driver manually in Carina's driver pool
-        CarinaDriver carinaDriver = new CarinaDriver(
-                IDriverPool.DEFAULT,
-                remoteDriver,
-                IDriverPool.getNullDevice(),
-                TestPhase.getActivePhase(),
-                Thread.currentThread().getId(),
-                options
-        );
+        // Your normal test flow below
 
-        IDriverPool.DRIVERS_POOL
-                .computeIfAbsent(Thread.currentThread().getId(), k -> new ConcurrentHashMap<>())
-                .put(IDriverPool.DEFAULT, carinaDriver);
-
-        logCurrentDriverInfoUnwrapped();
-
-        // Now use Carina's getDriver() or your remoteDriver directly as needed
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
@@ -106,52 +65,50 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
     }
 
-    public void logCurrentDriverInfoUnwrapped() {
-        WebDriver driver = getDriver();  // get default driver
-
-        // Find matching CarinaDriver by comparing WebDriver references
-        Map<String, CarinaDriver> drivers = IDriverPool.getDrivers();
-        CarinaDriver foundCarinaDriver = null;
-
-        for (CarinaDriver carinaDriver : drivers.values()) {
-            if (carinaDriver.getDriver().equals(driver)) {
-                foundCarinaDriver = carinaDriver;
-                break;
-            }
-        }
-
-        if (foundCarinaDriver != null) {
-            Capabilities originalCapabilities = foundCarinaDriver.getOriginalCapabilities();
-
-            LOGGER.warn("Original Capabilities: " + originalCapabilities);
-
-            // Unwrap driver if decorated
-            WebDriver unwrappedDriver = driver;
-            if (driver instanceof Decorated<?>) {
-                unwrappedDriver = (WebDriver) ((Decorated<?>) driver).getOriginal();
-            }
-
-            if (unwrappedDriver instanceof RemoteWebDriver) {
-                RemoteWebDriver remoteDriver = (RemoteWebDriver) unwrappedDriver;
-                SessionId sessionId = remoteDriver.getSessionId();
-                LOGGER.warn("Session ID: " + sessionId);
-
-                Capabilities actualCaps = remoteDriver.getCapabilities();
-                LOGGER.warn("Actual Capabilities: " + actualCaps);
-            } else {
-                LOGGER.warn("Unwrapped driver is not a RemoteWebDriver instance");
-            }
-        } else {
-            LOGGER.warn("Could not find CarinaDriver associated with current WebDriver instance");
-        }
-    }
+    // unchanged logCurrentDriverInfoUnwrapped() here ...
 
     @DataProvider(name = "DP1")
     public Object[][] dataprovider() {
         return new Object[][]{
-                {"TUID: Test position0",0},
-                {"TUID: Test position1",1},
-                {"TUID: Test position2",2}
+                {"TUID: Test position0", 0},
+                {"TUID: Test position1", 1},
+                {"TUID: Test position2", 2}
         };
+    }
+
+    // Static helper class for raw CDP commands
+    public static class RawCDPCommandSender {
+        public static String sendCommand(RemoteWebDriver driver, String cmd, String paramsJson) throws Exception {
+            String sessionId = driver.getSessionId().toString();
+            String resource = EXECUTOR_URL + "/session/" + sessionId + "/chromium/send_command_and_get_result";
+
+            URL url = new URL(resource);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            String jsonBody = String.format("{\"cmd\":\"%s\",\"params\":%s}", cmd, paramsJson);
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int code = connection.getResponseCode();
+            if (code != 200) {
+                throw new RuntimeException("Failed : HTTP error code : " + code);
+            }
+
+            try (var br = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                return response.toString();
+            }
+        }
     }
 }

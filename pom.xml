@@ -8,7 +8,7 @@
 	<artifactId>solvd_laba_testing</artifactId>
 	<version>1.0</version>
 	<packaging>jar</packaging>
-	<name>Solvd Laba Testing</name>
+	<name>Solvd_Laba_Testing</name>
 	<url>https://github.com/spitsynv2/solvd_laba_testing</url>
 
 	<properties>
