@@ -8,10 +8,14 @@ import com.zebrunner.carina.utils.common.CommonUtils;
 import com.zebrunner.carina.webdriver.CarinaDriver;
 import com.zebrunner.carina.webdriver.IDriverPool;
 import com.zebrunner.carina.webdriver.TestPhase;
+import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.SessionId;
+import org.openqa.selenium.support.decorators.Decorated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -72,8 +76,12 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 .computeIfAbsent(Thread.currentThread().getId(), k -> new ConcurrentHashMap<>())
                 .put(IDriverPool.DEFAULT, carinaDriver);
 
+        logCurrentDriverInfoUnwrapped();
+
         EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
 
@@ -84,6 +92,46 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String expectedItemName = itemPageBase.getItemName();
 
         Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
+    public void logCurrentDriverInfoUnwrapped() {
+        WebDriver driver = getDriver();  // get default driver
+
+        // Find matching CarinaDriver by comparing WebDriver references
+        Map<String, CarinaDriver> drivers = IDriverPool.getDrivers();
+        CarinaDriver foundCarinaDriver = null;
+
+        for (CarinaDriver carinaDriver : drivers.values()) {
+            if (carinaDriver.getDriver().equals(driver)) {
+                foundCarinaDriver = carinaDriver;
+                break;
+            }
+        }
+
+        if (foundCarinaDriver != null) {
+            Capabilities originalCapabilities = foundCarinaDriver.getOriginalCapabilities();
+
+            LOGGER.warn("Original Capabilities: " + originalCapabilities);
+
+            // Unwrap driver if decorated
+            WebDriver unwrappedDriver = driver;
+            if (driver instanceof Decorated<?>) {
+                unwrappedDriver = (WebDriver) ((Decorated<?>) driver).getOriginal();
+            }
+
+            if (unwrappedDriver instanceof RemoteWebDriver) {
+                RemoteWebDriver remoteDriver = (RemoteWebDriver) unwrappedDriver;
+                SessionId sessionId = remoteDriver.getSessionId();
+                LOGGER.warn("Session ID: " + sessionId);
+
+                Capabilities actualCaps = remoteDriver.getCapabilities();
+                LOGGER.warn("Actual Capabilities: " + actualCaps);
+            } else {
+                LOGGER.warn("Unwrapped driver is not a RemoteWebDriver instance");
+            }
+        } else {
+            LOGGER.warn("Could not find CarinaDriver associated with current WebDriver instance");
+        }
     }
 
     @DataProvider(name = "DP1")
