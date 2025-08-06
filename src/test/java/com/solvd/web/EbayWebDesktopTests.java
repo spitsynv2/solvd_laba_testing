@@ -5,8 +5,12 @@ import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
 import com.zebrunner.carina.utils.common.CommonUtils;
+import com.zebrunner.carina.webdriver.CarinaDriver;
+import com.zebrunner.carina.webdriver.IDriverPool;
+import com.zebrunner.carina.webdriver.TestPhase;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -16,6 +20,7 @@ import org.testng.annotations.Test;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -46,46 +51,32 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest(String TUID, int position) {
-        int maxAttempts = 20;
-        int pauseSeconds = 5;
-        ChromeDriver driver = null;
-        int attempt = 0;
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--incognito");
+        ChromeDriver customDriver = new ChromeDriver(options);
+        DesiredCapabilities caps = new DesiredCapabilities();
 
-        while (attempt <= maxAttempts) {
-            try {
-                ChromeOptions options = new ChromeOptions();
-                options.addArguments("--incognito");
+        // Set download behavior using CDP
+        Map<String, Object> params = new HashMap<>();
+        params.put("behavior", "allow");
+        params.put("downloadPath", "/downloads");
+        customDriver.executeCdpCommand("Page.setDownloadBehavior", params);
 
-                driver = new ChromeDriver(options);
+        // Register it in the DRIVERS_POOL
+        CarinaDriver carinaDriver = new CarinaDriver(
+                IDriverPool.DEFAULT,
+                customDriver,
+                IDriverPool.getNullDevice(), // or your Device
+                TestPhase.getActivePhase(),
+                Thread.currentThread().getId(),
+                caps
+        );
 
-                // Set download behavior using CDP
-                Map<String, Object> params = new HashMap<>();
-                params.put("behavior", "allow");
-                params.put("downloadPath", "/downloads");
+        IDriverPool.DRIVERS_POOL
+                .computeIfAbsent(Thread.currentThread().getId(), k -> new ConcurrentHashMap<>())
+                .put(IDriverPool.DEFAULT, carinaDriver);
 
-                driver.executeCdpCommand("Page.setDownloadBehavior", params);
-
-                // ✅ Success! Break the retry loop
-                break;
-
-            } catch (Exception e) {
-                if (driver != null) {
-                    try {
-                        driver.quit(); // 🧹 Clean up failed browser
-                    } catch (Exception ignored) {}
-                }
-
-                if (attempt == maxAttempts) {
-                    throw new RuntimeException("Failed to create WebDriver after retries", e);
-                }
-
-                LOGGER.warn("Attempt {} failed: {}. Retrying in {}s...", attempt, e.getMessage(), pauseSeconds);
-                CommonUtils.pause(pauseSeconds);
-                attempt++;
-            }
-        }
-
-        EbayHomePageBase ebayHomePage = initPage(driver,EbayHomePageBase.class);
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
@@ -97,7 +88,6 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String expectedItemName = itemPageBase.getItemName();
 
         Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-        driver.quit();
     }
 
     @DataProvider(name = "DP1")
