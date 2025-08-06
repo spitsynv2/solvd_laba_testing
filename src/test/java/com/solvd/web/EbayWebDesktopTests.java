@@ -4,6 +4,12 @@ import com.solvd.web.gui.pages.common.ebay.*;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
+import com.zebrunner.carina.webdriver.CarinaDriver;
+import com.zebrunner.carina.webdriver.IDriverPool;
+import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.SessionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -11,6 +17,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Map;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -41,8 +48,11 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest(String TUID, int position) {
+
         EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
+
+        logCurrentDriverInfo();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
 
@@ -63,4 +73,38 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 {"TUID: Test position2",2}
         };
     }
+
+    public void logCurrentDriverInfo() {
+        WebDriver driver = getDriver();  // get default driver
+
+        // Find matching CarinaDriver by comparing WebDriver references
+        Map<String, CarinaDriver> drivers = IDriverPool.getDrivers();
+        CarinaDriver foundCarinaDriver = null;
+
+        for (CarinaDriver carinaDriver : drivers.values()) {
+            if (carinaDriver.getDriver().equals(driver)) {
+                foundCarinaDriver = carinaDriver;
+                break;
+            }
+        }
+
+        if (foundCarinaDriver != null) {
+            Capabilities originalCapabilities = foundCarinaDriver.getOriginalCapabilities();
+
+            LOGGER.warn("Original Capabilities: " + originalCapabilities);
+
+            if (driver instanceof RemoteWebDriver) {
+                SessionId sessionId = ((RemoteWebDriver) driver).getSessionId();
+                LOGGER.warn("Session ID: " + sessionId);
+
+                Capabilities actualCaps = ((RemoteWebDriver) driver).getCapabilities();
+                LOGGER.warn("Actual Capabilities: " + actualCaps);
+            } else {
+                LOGGER.warn("Driver is not a RemoteWebDriver instance");
+            }
+        } else {
+            LOGGER.warn("Could not find CarinaDriver associated with current WebDriver instance");
+        }
+    }
+
 }
