@@ -1,6 +1,7 @@
 package com.solvd.web;
 
 import com.solvd.web.gui.pages.common.ebay.*;
+import com.zebrunner.agent.core.webdriver.RemoteWebDriverFactory;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
@@ -60,7 +61,9 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito");
 
-        RemoteWebDriver remoteDriver = new RemoteWebDriver(options);
+        URL seleniumUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
+
+        RemoteWebDriver remoteDriver = new RemoteWebDriver(seleniumUrl, options);
 
         // Register it in the DRIVERS_POOL
         CarinaDriver carinaDriver = new CarinaDriver(
@@ -80,8 +83,6 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
 
