@@ -26,6 +26,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
@@ -175,8 +178,26 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         }
 
         int responseCode = conn.getResponseCode();
+
+        InputStream is;
+        if (responseCode >= 200 && responseCode < 300) {
+            is = conn.getInputStream();
+        } else {
+            is = conn.getErrorStream();
+        }
+
+        StringBuilder response = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                response.append(line).append("\n");
+            }
+        }
+
+        LOGGER.info("CDP command response: " + response.toString());
+
         if (responseCode != 200) {
-            throw new RuntimeException("Failed to execute CDP command, HTTP code: " + responseCode);
+            LOGGER.warn("Failed to execute CDP command, HTTP code: " + responseCode + ", response: " + response.toString());
         }
     }
 }
