@@ -13,6 +13,9 @@ import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.HasDevTools;
+import org.openqa.selenium.remote.Command;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
@@ -23,8 +26,11 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,6 +71,8 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         RemoteWebDriver remoteDriver = new RemoteWebDriver(seleniumUrl, options);
 
+
+
         // Register it in the DRIVERS_POOL
         CarinaDriver carinaDriver = new CarinaDriver(
                 IDriverPool.DEFAULT,
@@ -83,6 +91,15 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
+
+        String sessionId = remoteDriver.getSessionId().toString();
+        String cmd = "Page.setDownloadBehavior";
+        String paramsJson = "{\"behavior\":\"allow\",\"downloadPath\":\"/tmp/downloads\"}";
+        try {
+            sendCDPCommand(RemoteWebDriverFactory.getSeleniumHubUrl().toString(),sessionId,cmd,paramsJson);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
 
@@ -142,5 +159,25 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 {"TUID: Test position1",1},
                 {"TUID: Test position2",2}
         };
+    }
+
+    public void sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
+        String url = String.format("http://%s/wd/hub/session/%s/goog/cdp/execute", selenoidHost, sessionId);
+
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+
+        String body = String.format("{\"cmd\":\"%s\",\"params\":%s}", cmd, paramsJson);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int responseCode = conn.getResponseCode();
+        if (responseCode != 200) {
+            throw new RuntimeException("Failed to execute CDP command, HTTP code: " + responseCode);
+        }
     }
 }
