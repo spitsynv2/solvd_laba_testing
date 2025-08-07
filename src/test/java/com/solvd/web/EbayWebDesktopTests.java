@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -71,6 +72,13 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         options.addArguments("--incognito");
 
         URL seleniumUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
+        if (seleniumUrl == null) {
+            try {
+                seleniumUrl = new URL("http://localhost:4444/wd/hub");
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         RemoteWebDriver remoteDriver = new RemoteWebDriver(seleniumUrl, options);
 
@@ -100,8 +108,8 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String cmd2 = "Runtime.evaluate";
         String paramsJson2 = "{\"expression\": \"alert('✅ CDP is working!')\"}";
         try {
-            sendCDPCommand(RemoteWebDriverFactory.getSeleniumHubUrl().toString(),sessionId,cmd,paramsJson);
-            sendCDPCommand(RemoteWebDriverFactory.getSeleniumHubUrl().toString(),sessionId,cmd2,paramsJson2);
+            sendCDPCommand(seleniumUrl.toString(),sessionId,cmd,paramsJson);
+            sendCDPCommand(seleniumUrl.toString(),sessionId,cmd2,paramsJson2);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
