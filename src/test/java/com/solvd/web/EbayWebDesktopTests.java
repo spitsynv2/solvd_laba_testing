@@ -96,15 +96,13 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String sessionId = remoteDriver.getSessionId().toString();
         String cmd = "Browser.setDownloadBehavior";
         String paramsJson = "{\"behavior\":\"allow\",\"downloadPath\":\"/tmp/Downloads\",\"eventsEnabled\":true}";
+
+        String cmd2 = "Runtime.evaluate";
+        String paramsJson2 = "{\"expression\": \"alert('✅ CDP is working!')\"}";
         try {
             sendCDPCommand(RemoteWebDriverFactory.getSeleniumHubUrl().toString(),sessionId,cmd,paramsJson);
+            sendCDPCommand(RemoteWebDriverFactory.getSeleniumHubUrl().toString(),sessionId,cmd2,paramsJson2);
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            Thread.sleep(50000000);
-        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
