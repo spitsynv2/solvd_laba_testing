@@ -70,6 +70,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTest(String TUID, int position) {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito");
+        WebDriver webDriver = getDriver("chrome",options);
 
         URL seleniumUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
         if (seleniumUrl == null) {
@@ -80,43 +81,19 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
             }
         }
 
-        RemoteWebDriver remoteDriver = new RemoteWebDriver(seleniumUrl, options);
+        RemoteWebDriver remoteWebDriver = null;
+        if (webDriver instanceof Decorated<?>) {
+            remoteWebDriver = (RemoteWebDriver) ((Decorated<?>) webDriver).getOriginal();
+        }
+        String sessionId = remoteWebDriver.getSessionId().toString();
+        String cmd = "Page.setDownloadBehavior";
+        String paramsJson = "{\"behavior\":\"allow\",\"downloadPath\":\"/tmp/downloads\",\"eventsEnabled\":true}";
 
-        // Register it in the DRIVERS_POOL
-        CarinaDriver carinaDriver = new CarinaDriver(
-                IDriverPool.DEFAULT,
-                remoteDriver,
-                IDriverPool.getNullDevice(), // or your Device
-                TestPhase.getActivePhase(),
-                Thread.currentThread().getId(),
-                options
-        );
-
-        IDriverPool.DRIVERS_POOL
-                .computeIfAbsent(Thread.currentThread().getId(), k -> new ConcurrentHashMap<>())
-                .put(IDriverPool.DEFAULT, carinaDriver);
-
-        logCurrentDriverInfoUnwrapped();
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        EbayHomePageBase ebayHomePage = initPage(webDriver,EbayHomePageBase.class);
         ebayHomePage.open();
-
-        String sessionId = remoteDriver.getSessionId().toString();
-        String cmd = "Browser.setDownloadBehavior";
-        String paramsJson = "{\"behavior\":\"allow\",\"downloadPath\":\"/tmp/Downloads\",\"eventsEnabled\":true}";
-
-        String cmd2 = "Runtime.evaluate";
-        String paramsJson2 = "{\"expression\": \"alert('✅ CDP is working!')\"}";
         try {
             sendCDPCommand(seleniumUrl.toString(),sessionId,cmd,paramsJson);
-            sendCDPCommand(seleniumUrl.toString(),sessionId,cmd2,paramsJson2);
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            Thread.sleep(50000);
-        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
@@ -182,7 +159,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
     public void sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
         String url = String.format("%s/session/%s/goog/cdp/execute", selenoidHost, sessionId);
-        LOGGER.warn(url);
+        LOGGER.info(url);
 
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("POST");
