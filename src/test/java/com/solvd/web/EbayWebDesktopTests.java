@@ -114,6 +114,12 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
             throw new RuntimeException(e);
         }
 
+        try {
+            Thread.sleep(50000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
 
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
@@ -181,7 +187,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
-        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 
         String body = String.format("{\"cmd\":\"%s\",\"params\":%s}", cmd, paramsJson);
 
