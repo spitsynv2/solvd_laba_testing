@@ -94,11 +94,17 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         ebayHomePage.open();
 
         String sessionId = remoteDriver.getSessionId().toString();
-        String cmd = "Page.setDownloadBehavior";
-        String paramsJson = "{\"behavior\":\"allow\",\"downloadPath\":\"/tmp/downloads\"}";
+        String cmd = "Browser.setDownloadBehavior";
+        String paramsJson = "{\"behavior\":\"allow\",\"downloadPath\":\"/tmp/Downloads\",\"eventsEnabled\":true}";
         try {
             sendCDPCommand(RemoteWebDriverFactory.getSeleniumHubUrl().toString(),sessionId,cmd,paramsJson);
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            Thread.sleep(50000000);
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
