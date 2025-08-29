@@ -60,6 +60,8 @@ tasks.register('copyZebrunnerAgent', Copy) {
 
 // Run tests with agent and suite
 test {
+    timeout = Duration.ofMinutes(5)
+
     useTestNG() {
         suites "src/test/resources/testing_suites/EbayWebTest.xml"
     }
