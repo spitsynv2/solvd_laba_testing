@@ -1,12 +1,20 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite verbose="1" name="WebTests suite" parallel="methods">
+<suite name="WebTests suite"
+       verbose="1"
+       parallel="methods"
+       thread-count="4"
+       data-provider-thread-count="4">
 
-    <test name="Ebay + DataProvider + Crypto Tests">
+    <test name="Ebay + DataProvider + Crypto Tests"
+          parallel="methods"
+          thread-count="4">
         <classes>
             <class name="com.solvd.web.EbayWebDesktopTests">
                 <methods>
                     <include name="itemTitleEqualsTest"/>
-                    <include name="checkoutItemWithEncryptedDataTest"/>
+                    <include name="itemTitleEqualsTest2"/>
+                    <include name="itemTitleEqualsTest3"/>
+                    <include name="itemTitleEqualsTest4"/>
                 </methods>
             </class>
         </classes>

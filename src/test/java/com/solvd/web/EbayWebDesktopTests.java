@@ -14,41 +14,118 @@ import org.openqa.selenium.support.decorators.Decorated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    /*
-    @Test(dataProvider = "DataProvider")
-    @MethodOwner(owner = "Laba")
-    @XlsDataSourceParameters(path = "data_source/testData.xlsx", sheet = "Page1", dsUid = "TUID")
-    public void checkoutItemWithEncryptedDataTest(Map<String, String> args) {
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        SearchResultPageBase searchResultPage = ebayHomePage.searchForItem(args.get("searchText"),args.get("category"));
-        ItemPageBase itemPage = searchResultPage.selectFirstResultItem();
-        CheckoutPageBase checkoutPage = itemPage.goToCheckOutPage();
-        CheckoutForm checkoutForm = new CheckoutForm(
-                args.get("country"),
-                args.get("firstName"),
-                args.get("lastName"),
-                args.get("city"),
-                args.get("email"),
-                args.get("countryCode"),
-                args.get("phone"));
-        checkoutPage.checkout(checkoutForm);
+    @BeforeMethod(alwaysRun = true)
+    public void logStart(Method method, Object[] params) {
+        LOGGER.info("▶ START: {}{} | thread={}",
+                method.getName(),
+                params == null ? "()" : Arrays.toString(params),
+                Thread.currentThread().getId());
     }
-    */
+
+    @AfterMethod(alwaysRun = true)
+    public void logFinish(ITestResult result) {
+        long duration = result.getEndMillis() - result.getStartMillis();
+
+        String status;
+        switch (result.getStatus()) {
+            case ITestResult.SUCCESS:
+                status = "SUCCESS";
+                break;
+            case ITestResult.FAILURE:
+                status = "FAILURE";
+                break;
+            case ITestResult.SKIP:
+                status = "SKIPPED";
+                break;
+            default:
+                status = "UNKNOWN";
+                break;
+        }
+
+        LOGGER.info("■ END: {} | status={} | duration={}ms | thread={}",
+                result.getMethod().getMethodName(),
+                status,
+                duration,
+                Thread.currentThread().getId());
+    }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest(String TUID, int position) {
+
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
+
+        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest2(String TUID, int position) {
+
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
+
+        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest3(String TUID, int position) {
+
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
+
+        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest4(String TUID, int position) {
 
         EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
         ebayHomePage.open();
