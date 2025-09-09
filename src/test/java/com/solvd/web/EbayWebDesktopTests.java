@@ -143,6 +143,86 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
     }
 
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest5(String TUID, int position) {
+
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
+
+        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest6(String TUID, int position) {
+
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
+
+        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest7(String TUID, int position) {
+
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
+
+        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest8(String TUID, int position) {
+
+        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+        ebayHomePage.open();
+
+        logCurrentDriverInfoUnwrapped();
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
+
+        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+    }
+
     @DataProvider(name = "DP1")
     public Object[][] dataprovider() {
         return new Object[][]{

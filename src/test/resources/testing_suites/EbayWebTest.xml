@@ -2,12 +2,12 @@
 <suite name="WebTests suite"
        verbose="1"
        parallel="methods"
-       thread-count="4"
-       data-provider-thread-count="4">
+       thread-count="8"
+       data-provider-thread-count="3">
 
     <test name="Ebay + DataProvider + Crypto Tests"
           parallel="methods"
-          thread-count="4">
+          thread-count="8">
         <classes>
             <class name="com.solvd.web.EbayWebDesktopTests">
                 <methods>
@@ -15,6 +15,10 @@
                     <include name="itemTitleEqualsTest2"/>
                     <include name="itemTitleEqualsTest3"/>
                     <include name="itemTitleEqualsTest4"/>
+                    <include name="itemTitleEqualsTest5"/>
+                    <include name="itemTitleEqualsTest6"/>
+                    <include name="itemTitleEqualsTest7"/>
+                    <include name="itemTitleEqualsTest8"/>
                 </methods>
             </class>
         </classes>
