@@ -15,225 +15,130 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+    // Track last test end per thread so we can measure gaps between tests on the same worker
+    private static final ConcurrentHashMap<Long, Long> LAST_TEST_END_MS = new ConcurrentHashMap<>();
+
+    // Keep per-test start time (to compute durations)
+    private final ThreadLocal<Long> testStartMs = new ThreadLocal<>();
+
     @BeforeMethod(alwaysRun = true)
     public void logStart(Method method, Object[] params) {
-        LOGGER.info("▶ START: {}{} | thread={}",
+        long now = System.currentTimeMillis();
+        long tid = Thread.currentThread().getId();
+
+        Long prevEnd = LAST_TEST_END_MS.get(tid);
+        long idleGap = (prevEnd == null) ? -1 : (now - prevEnd);
+
+        LOGGER.info("▶ START: {}{} | thread={}{}",
                 method.getName(),
                 params == null ? "()" : Arrays.toString(params),
-                Thread.currentThread().getId());
+                tid,
+                (idleGap >= 0 ? String.format(" | idle gap since previous test on this thread=%dms", idleGap) : "")
+        );
+        testStartMs.set(now);
     }
 
     @AfterMethod(alwaysRun = true)
     public void logFinish(ITestResult result) {
-        long duration = result.getEndMillis() - result.getStartMillis();
+        long endMs = System.currentTimeMillis();
+        Long startMs = testStartMs.get();
+        long duration = (startMs == null) ? -1 : (endMs - startMs);
 
         String status;
         switch (result.getStatus()) {
-            case ITestResult.SUCCESS:
-                status = "SUCCESS";
-                break;
-            case ITestResult.FAILURE:
-                status = "FAILURE";
-                break;
-            case ITestResult.SKIP:
-                status = "SKIPPED";
-                break;
-            default:
-                status = "UNKNOWN";
-                break;
+            case ITestResult.SUCCESS: status = "SUCCESS"; break;
+            case ITestResult.FAILURE: status = "FAILURE"; break;
+            case ITestResult.SKIP:    status = "SKIPPED"; break;
+            default:                  status = "UNKNOWN";
         }
 
-        LOGGER.info("■ END: {} | status={} | duration={}ms | thread={}",
-                result.getMethod().getMethodName(),
-                status,
-                duration,
-                Thread.currentThread().getId());
+        LOGGER.info("■ END(test body): {} | status={} | duration={}ms | thread={}",
+                result.getMethod().getMethodName(), status, duration, Thread.currentThread().getId());
+
+        // ---- Measure how long DELETE /session takes (driver.quit) ----
+        long quitStart = System.currentTimeMillis();
+        try {
+            // Carina-managed: this calls RemoteWebDriver#quit() underneath
+            quitDriver(); // IMPORTANT: if you already auto-quit elsewhere, remove that to avoid double-quit
+        } catch (Throwable t) {
+            LOGGER.warn("quitDriver threw: {}", t.toString());
+        }
+        long quitDuration = System.currentTimeMillis() - quitStart;
+        LOGGER.warn("QUIT duration (DELETE /session): {} ms | thread={}", quitDuration, Thread.currentThread().getId());
+
+        // Mark end so next test on this thread can report idle gap
+        LAST_TEST_END_MS.put(Thread.currentThread().getId(), System.currentTimeMillis());
     }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest(String TUID, int position) {
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
-
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
-
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-    }
+    public void itemTitleEqualsTest(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest2(String TUID, int position) {
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
-
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
-
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-    }
+    public void itemTitleEqualsTest2(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest3(String TUID, int position) {
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
-
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
-
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-    }
+    public void itemTitleEqualsTest3(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest4(String TUID, int position) {
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
-
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
-
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-    }
+    public void itemTitleEqualsTest4(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest5(String TUID, int position) {
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
-
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
-
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-    }
+    public void itemTitleEqualsTest5(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest6(String TUID, int position) {
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
-
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
-
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-    }
+    public void itemTitleEqualsTest6(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest7(String TUID, int position) {
-
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
-        ebayHomePage.open();
-
-        logCurrentDriverInfoUnwrapped();
-
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
-
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
-    }
+    public void itemTitleEqualsTest7(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest8(String TUID, int position) {
+    public void itemTitleEqualsTest8(String TUID, int position) { runSameFlow(position); }
 
-        EbayHomePageBase ebayHomePage = initPage(getDriver(),EbayHomePageBase.class);
+    private void runSameFlow(int position) {
+        EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         ebayHomePage.open();
-
         logCurrentDriverInfoUnwrapped();
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
 
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
         ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
         String expectedItemName = itemPageBase.getItemName();
 
-        Assert.assertEquals(limitedTimeDealItemName,expectedItemName);
+        Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
     }
 
-    @DataProvider(name = "DP1")
+    @DataProvider(name = "DP1", parallel = true) // <-- run inputs in parallel to reveal blocking more clearly
     public Object[][] dataprovider() {
         return new Object[][]{
-                {"TUID: Test position0",0},
-                {"TUID: Test position1",1},
-                {"TUID: Test position2",2}
+                {"TUID: Test position0", 0},
+                {"TUID: Test position1", 1},
+                {"TUID: Test position2", 2}
         };
     }
 
     public void logCurrentDriverInfoUnwrapped() {
-        WebDriver driver = getDriver();  // get default driver
+        WebDriver driver = getDriver();  // default driver
 
         // Find matching CarinaDriver by comparing WebDriver references
         Map<String, CarinaDriver> drivers = IDriverPool.getDrivers();
@@ -248,8 +153,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         if (foundCarinaDriver != null) {
             Capabilities originalCapabilities = foundCarinaDriver.getOriginalCapabilities();
-
-            LOGGER.warn("Original Capabilities: " + originalCapabilities);
+            LOGGER.warn("Original Capabilities: {}", originalCapabilities);
 
             // Unwrap driver if decorated
             WebDriver unwrappedDriver = driver;
@@ -260,10 +164,10 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
             if (unwrappedDriver instanceof RemoteWebDriver) {
                 RemoteWebDriver remoteDriver = (RemoteWebDriver) unwrappedDriver;
                 SessionId sessionId = remoteDriver.getSessionId();
-                LOGGER.warn("Session ID: " + sessionId);
+                LOGGER.warn("Session ID: {}", sessionId);
 
                 Capabilities actualCaps = remoteDriver.getCapabilities();
-                LOGGER.warn("Actual Capabilities: " + actualCaps);
+                LOGGER.warn("Actual Capabilities: {}", actualCaps);
             } else {
                 LOGGER.warn("Unwrapped driver is not a RemoteWebDriver instance");
             }
@@ -271,6 +175,4 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
             LOGGER.warn("Could not find CarinaDriver associated with current WebDriver instance");
         }
     }
-
-
 }
