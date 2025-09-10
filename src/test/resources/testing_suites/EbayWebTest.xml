@@ -2,8 +2,7 @@
 <suite name="WebTests suite"
        verbose="1"
        parallel="methods"
-       thread-count="8"
-       data-provider-thread-count="3">
+       thread-count="8">
 
     <test name="Ebay + DataProvider + Crypto Tests"
           parallel="methods"
