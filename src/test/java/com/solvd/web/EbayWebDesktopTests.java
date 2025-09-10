@@ -66,24 +66,12 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         LOGGER.info("■ END(test body): {} | status={} | duration={}ms | thread={}",
                 result.getMethod().getMethodName(), status, duration, Thread.currentThread().getId());
 
-        // ---- Measure how long DELETE /session takes (driver.quit) ----
-        long quitStart = System.currentTimeMillis();
-        try {
-            // Carina-managed: this calls RemoteWebDriver#quit() underneath
-            quitDriver(); // IMPORTANT: if you already auto-quit elsewhere, remove that to avoid double-quit
-        } catch (Throwable t) {
-            LOGGER.warn("quitDriver threw: {}", t.toString());
-        }
-        long quitDuration = System.currentTimeMillis() - quitStart;
-        LOGGER.warn("QUIT duration (DELETE /session): {} ms | thread={}", quitDuration, Thread.currentThread().getId());
-
-        // Mark end so next test on this thread can report idle gap
         LAST_TEST_END_MS.put(Thread.currentThread().getId(), System.currentTimeMillis());
     }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTest(String TUID, int position) { runSameFlow(position); }
+    public void itemTitleEqualsTest1(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
@@ -113,6 +101,18 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     @MethodOwner(owner = "VS")
     public void itemTitleEqualsTest8(String TUID, int position) { runSameFlow(position); }
 
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTestSingle1(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTestSingle2(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTestSingle3(String TUID, int position) { runSameFlow(position); }
+
     private void runSameFlow(int position) {
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         ebayHomePage.open();
@@ -128,7 +128,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
     }
 
-    @DataProvider(name = "DP1", parallel = true) // <-- run inputs in parallel to reveal blocking more clearly
+    @DataProvider(name = "DP1", parallel = true) // keep parallel to observe scheduling/idle gaps
     public Object[][] dataprovider() {
         return new Object[][]{
                 {"TUID: Test position0", 0},
