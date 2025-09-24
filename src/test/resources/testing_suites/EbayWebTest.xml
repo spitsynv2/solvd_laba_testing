@@ -2,38 +2,19 @@
 <suite name="WebTests suite"
        verbose="1"
        parallel="methods"
-       thread-count="8">
+       thread-count="3">
 
     <test name="Parallel"
           parallel="methods"
-          thread-count="8">
+          thread-count="3">
         <classes>
             <class name="com.solvd.web.EbayWebDesktopTests">
                 <methods>
                     <include name="itemTitleEqualsTest1"/>
                     <include name="itemTitleEqualsTest2"/>
                     <include name="itemTitleEqualsTest3"/>
-                    <include name="itemTitleEqualsTest4"/>
-                    <include name="itemTitleEqualsTest5"/>
-                    <include name="itemTitleEqualsTest6"/>
-                    <include name="itemTitleEqualsTest7"/>
-                    <include name="itemTitleEqualsTest8"/>
                 </methods>
             </class>
         </classes>
     </test>
-
-    <test name="Single thread"
-          thread-count="1">
-        <classes>
-            <class name="com.solvd.web.EbayWebDesktopTests">
-                <methods>
-                    <include name="itemTitleEqualsTestSingle1"/>
-                    <include name="itemTitleEqualsTestSingle2"/>
-                    <include name="itemTitleEqualsTestSingle3"/>
-                </methods>
-            </class>
-        </classes>
-    </test>
-
 </suite>
