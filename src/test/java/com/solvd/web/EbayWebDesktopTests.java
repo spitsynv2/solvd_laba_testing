@@ -11,6 +11,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 import org.openqa.selenium.support.decorators.Decorated;
+import org.openqa.selenium.SessionNotCreatedException;
+import org.openqa.selenium.remote.UnreachableBrowserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -24,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     // Track last test end per thread so we can measure gaps between tests on the same worker
@@ -47,6 +50,10 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 (idleGap >= 0 ? String.format(" | idle gap since previous test on this thread=%dms", idleGap) : "")
         );
         testStartMs.set(now);
+
+        // Proactively log driver config before test begins
+        logDriverConfig();
+        verifyDriverStart(method);
     }
 
     @AfterMethod(alwaysRun = true)
@@ -68,6 +75,10 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         LAST_TEST_END_MS.put(Thread.currentThread().getId(), System.currentTimeMillis());
     }
+
+    // =============================
+    // Main flow tests
+    // =============================
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
@@ -103,15 +114,63 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTestSingle1(String TUID, int position) { runSameFlow(position); }
+    public void itemTitleEqualsTest9(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTestSingle2(String TUID, int position) { runSameFlow(position); }
+    public void itemTitleEqualsTest10(String TUID, int position) { runSameFlow(position); }
 
     @Test(dataProvider = "DP1")
     @MethodOwner(owner = "VS")
-    public void itemTitleEqualsTestSingle3(String TUID, int position) { runSameFlow(position); }
+    public void itemTitleEqualsTest11(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest12(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest13(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest14(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest15(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest16(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest17(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest18(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest19(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest20(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest21(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest22(String TUID, int position) { runSameFlow(position); }
+
+    @Test(dataProvider = "DP1")
+    @MethodOwner(owner = "VS")
+    public void itemTitleEqualsTest23(String TUID, int position) { runSameFlow(position); }
 
     private void runSameFlow(int position) {
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
@@ -135,6 +194,49 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 {"TUID: Test position1", 1},
                 {"TUID: Test position2", 2}
         };
+    }
+
+    // =============================
+    // Extra logging utilities
+    // =============================
+
+    private void verifyDriverStart(Method method) {
+        try {
+            WebDriver driver = getDriver();
+            if (driver == null) {
+                LOGGER.error("WebDriver is NULL before test [{}]. Check driver initialization.", method.getName());
+            }
+        } catch (SessionNotCreatedException snce) {
+            LOGGER.error("Session not created for [{}]. " +
+                            "Possible causes: browser mismatch, bad driver binary, or wrong hub URL. Details: {}",
+                    method.getName(), snce.getMessage(), snce);
+            throw snce;
+        } catch (UnreachableBrowserException ube) {
+            LOGGER.error("Browser unreachable for [{}]. " +
+                            "Possible causes: Selenium hub down, wrong hub address, network issue. Details: {}",
+                    method.getName(), ube.getMessage(), ube);
+            throw ube;
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error creating driver for [{}]: {}", method.getName(), e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    private void logDriverConfig() {
+        try {
+            Map<String, CarinaDriver> drivers = IDriverPool.getDrivers();
+            if (drivers.isEmpty()) {
+                LOGGER.warn("⚠ No Carina drivers registered yet.");
+            }
+            for (Map.Entry<String, CarinaDriver> entry : drivers.entrySet()) {
+                CarinaDriver cdriver = entry.getValue();
+                LOGGER.info("Driver [{}] -> Original Capabilities: {}",
+                        entry.getKey(),
+                        cdriver.getOriginalCapabilities());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Unable to log driver configs: {}", e.getMessage());
+        }
     }
 
     public void logCurrentDriverInfoUnwrapped() {

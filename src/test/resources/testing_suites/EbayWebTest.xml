@@ -2,17 +2,35 @@
 <suite name="WebTests suite"
        verbose="1"
        parallel="methods"
-       thread-count="3">
+       thread-count="23">
 
-    <test name="Parallel"
-          parallel="methods"
-          thread-count="3">
+    <test name="Parallel">
         <classes>
             <class name="com.solvd.web.EbayWebDesktopTests">
                 <methods>
                     <include name="itemTitleEqualsTest1"/>
                     <include name="itemTitleEqualsTest2"/>
                     <include name="itemTitleEqualsTest3"/>
+                    <include name="itemTitleEqualsTest4"/>
+                    <include name="itemTitleEqualsTest5"/>
+                    <include name="itemTitleEqualsTest6"/>
+                    <include name="itemTitleEqualsTest7"/>
+                    <include name="itemTitleEqualsTest8"/>
+                    <include name="itemTitleEqualsTest9"/>
+                    <include name="itemTitleEqualsTest10"/>
+                    <include name="itemTitleEqualsTest11"/>
+                    <include name="itemTitleEqualsTest12"/>
+                    <include name="itemTitleEqualsTest13"/>
+                    <include name="itemTitleEqualsTest14"/>
+                    <include name="itemTitleEqualsTest15"/>
+                    <include name="itemTitleEqualsTest16"/>
+                    <include name="itemTitleEqualsTest17"/>
+                    <include name="itemTitleEqualsTest18"/>
+                    <include name="itemTitleEqualsTest19"/>
+                    <include name="itemTitleEqualsTest20"/>
+                    <include name="itemTitleEqualsTest21"/>
+                    <include name="itemTitleEqualsTest22"/>
+                    <include name="itemTitleEqualsTest23"/>
                 </methods>
             </class>
         </classes>
