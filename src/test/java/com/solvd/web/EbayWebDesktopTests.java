@@ -1,6 +1,7 @@
 package com.solvd.web;
 
 import com.solvd.web.gui.pages.common.ebay.*;
+import com.zebrunner.agent.core.webdriver.RemoteWebDriverFactory;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
@@ -21,6 +22,8 @@ import org.testng.annotations.*;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -173,9 +176,21 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTest23(String TUID, int position) { runSameFlow(position); }
 
     private void runSameFlow(int position) {
+        LOGGER.info("BEFORE START DRIVER LOGS - START");
+        logDriverEndpoint(getDriver());
+        LOGGER.info("Session id: " +getSessionId());
+        LOGGER.info("Session id: " +getSessionId() + getSeleniumUrl());
+        LOGGER.info("BEFORE START DRIVER LOGS - END");
+
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         ebayHomePage.open();
+
+        LOGGER.info("AFTER START DRIVER LOGS - START");
         logCurrentDriverInfoUnwrapped();
+        logDriverEndpoint(getDriver());
+        LOGGER.info("Session id: " +getSessionId());
+        LOGGER.info("Session id: " +getSessionId() + getSeleniumUrl());
+        LOGGER.info("AFTER START DRIVER LOGS - ENDS");
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
@@ -276,5 +291,55 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         } else {
             LOGGER.warn("Could not find CarinaDriver associated with current WebDriver instance");
         }
+    }
+
+    private void logDriverEndpoint(WebDriver driver) {
+        try {
+            WebDriver unwrappedDriver = driver;
+            if (driver instanceof Decorated<?>) {
+                unwrappedDriver = (WebDriver) ((Decorated<?>) driver).getOriginal();
+            }
+
+            if (unwrappedDriver instanceof RemoteWebDriver) {
+                RemoteWebDriver rwd = (RemoteWebDriver) unwrappedDriver;
+                SessionId sessionId = rwd.getSessionId();
+
+                if (rwd.getCommandExecutor() instanceof org.openqa.selenium.remote.HttpCommandExecutor) {
+                    org.openqa.selenium.remote.HttpCommandExecutor exec =
+                            (org.openqa.selenium.remote.HttpCommandExecutor) rwd.getCommandExecutor();
+                    java.net.URL hubUrl = exec.getAddressOfRemoteServer();
+                    LOGGER.info("➡ Connecting RemoteWebDriver at URL: {} | Session ID: {}", hubUrl, sessionId);
+                } else {
+                    LOGGER.warn("CommandExecutor is not HttpCommandExecutor: {}", rwd.getCommandExecutor().getClass());
+                }
+            } else {
+                LOGGER.warn("Driver is not a RemoteWebDriver: {}", driver.getClass());
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to log driver endpoint: {}", e.getMessage(), e);
+        }
+    }
+
+    private String getSessionId(){
+        WebDriver driver = getDriver();
+        if (driver instanceof Decorated<?>) {
+            driver = (WebDriver) ((Decorated<?>) driver).getOriginal();
+        }
+        if (driver instanceof RemoteWebDriver) {
+            return ((RemoteWebDriver) driver).getSessionId().toString();
+        }
+        return null;
+    }
+
+    private String getSeleniumUrl(){
+        URL seleniumUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
+        if (seleniumUrl == null) {
+            try {
+                seleniumUrl = new URL("http://localhost:4444/wd/hub");
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return seleniumUrl.toString();
     }
 }
