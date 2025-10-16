@@ -105,7 +105,7 @@ public class IncognitoDownloadTest extends AbstractTest {
     private void downloadFileFromContainer(URL seleniumUrl, String sessionId, String filenamePrefix) {
         try {
             // Get the router URL from selenium URL (replace /wd/hub with empty string)
-            String routerUrl = seleniumUrl.toString().replace("/wd/hub", "");
+            String routerUrl = seleniumUrl.toString();
 
             // Try different possible download paths in the container
             String[] possiblePaths = {
