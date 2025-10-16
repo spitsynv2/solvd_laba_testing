@@ -13,6 +13,7 @@ import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -20,6 +21,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.zebrunner.carina.utils.R;
 
@@ -49,7 +53,8 @@ public class IncognitoDownloadTest extends AbstractTest {
 
         pause(10);
 
-        verifyDownloadedFile(downloadPath, "pexels");
+        String sessionId = driver.getSessionId().toString();
+        downloadFileFromContainer(seleniumUrl, sessionId, "pexels");
 
         pause(10);
     }
@@ -97,15 +102,92 @@ public class IncognitoDownloadTest extends AbstractTest {
         }
     }
 
-    private void verifyDownloadedFile(String downloadPath, String filenamePrefix) {
-        File folder = new File(downloadPath);
-        File[] matchingFiles = folder.listFiles((dir, name) -> name.startsWith(filenamePrefix));
+    private void downloadFileFromContainer(URL seleniumUrl, String sessionId, String filenamePrefix) {
+        try {
+            // Get the router URL from selenium URL (replace /wd/hub with empty string)
+            String routerUrl = seleniumUrl.toString().replace("/wd/hub", "");
 
-        if (matchingFiles != null && matchingFiles.length > 0) {
-            LOGGER.info("Found file: " + matchingFiles[0].getName());
-        } else {
-            LOGGER.info("No file starting with '" + filenamePrefix + "' found.");
+            // Try different possible download paths in the container
+            String[] possiblePaths = {
+                    "tmp/downloads/"
+            };
+
+            for (String path : possiblePaths) {
+                String downloadUrl = String.format("%s/download/%s/%s", routerUrl, sessionId, path);
+                LOGGER.info("Attempting to access: " + downloadUrl);
+
+                if (downloadDirectoryFromContainer(downloadUrl, filenamePrefix)) {
+                    LOGGER.info("Successfully downloaded files from path: " + path);
+                    return;
+                }
+            }
+
+            LOGGER.warn("No files found in any of the attempted container paths");
+
+        } catch (Exception e) {
+            LOGGER.error("Failed to download files from container", e);
         }
+    }
+
+    private boolean downloadDirectoryFromContainer(String downloadUrl, String filenamePrefix) {
+        try {
+            URL url = new URL(downloadUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            int responseCode = conn.getResponseCode();
+            LOGGER.info("Response code for " + downloadUrl + ": " + responseCode);
+
+            if (responseCode == 200) {
+                // Create local download directory
+                Path localDownloadDir = Paths.get("tmp/downloads");
+                Files.createDirectories(localDownloadDir);
+
+                // Read the response (could be a file or directory listing)
+                try (InputStream inputStream = conn.getInputStream()) {
+                    // For now, just log the content type and size
+                    String contentType = conn.getContentType();
+                    long contentLength = conn.getContentLengthLong();
+
+                    LOGGER.info("Content-Type: " + contentType + ", Content-Length: " + contentLength);
+
+                    if (contentType != null && !contentType.startsWith("text/html")) {
+                        // It's likely a file, save it
+                        String fileName = filenamePrefix + "_downloaded_file";
+                        Path filePath = localDownloadDir.resolve(fileName);
+
+                        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+                            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                fos.write(buffer, 0, bytesRead);
+                            }
+                        }
+
+                        LOGGER.info("File saved to: " + filePath.toAbsolutePath());
+                        return true;
+                    } else {
+                        // It's likely an HTML directory listing, log it
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                            StringBuilder content = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                content.append(line).append("\n");
+                            }
+                            LOGGER.info("Directory listing: " + content.toString());
+                        }
+                    }
+                }
+                return true;
+            } else {
+                LOGGER.warn("Failed to access " + downloadUrl + " with response code: " + responseCode);
+            }
+
+        } catch (Exception e) {
+            LOGGER.warn("Error accessing " + downloadUrl + ": " + e.getMessage());
+        }
+
+        return false;
     }
 
     public void sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
