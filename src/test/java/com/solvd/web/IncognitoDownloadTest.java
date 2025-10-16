@@ -54,7 +54,16 @@ public class IncognitoDownloadTest extends AbstractTest {
         pause(10);
 
         String sessionId = driver.getSessionId().toString();
-        downloadFileFromContainer(seleniumUrl, sessionId, "pexels");
+
+        // Get actual downloaded file information from browser
+        String downloadedFileName = getDownloadedFileNameFromBrowser(seleniumUrl, sessionId);
+
+        if (downloadedFileName != null) {
+            LOGGER.info("Found downloaded file: " + downloadedFileName);
+            downloadSpecificFileFromContainer(seleniumUrl, sessionId, downloadedFileName);
+        } else {
+            LOGGER.warn("Could not determine downloaded file name");
+        }
 
         pause(10);
     }
@@ -102,95 +111,77 @@ public class IncognitoDownloadTest extends AbstractTest {
         }
     }
 
-    private void downloadFileFromContainer(URL seleniumUrl, String sessionId, String filenamePrefix) {
+
+
+    private String getDownloadedFileNameFromBrowser(URL seleniumUrl, String sessionId) {
         try {
-            // Get the router URL from selenium URL (replace /wd/hub with empty string)
-            String routerUrl = seleniumUrl.toString();
+            // Try to get download information using CDP
+            String cmd = "Browser.getDownloadCommands";
+            String params = "{}";
 
-            // Try different possible download paths in the container
-            String[] possiblePaths = {
-                    "tmp/downloads/"
-            };
+            String response = sendCDPCommand(seleniumUrl.toString(), sessionId, cmd, params);
+            LOGGER.info("Download info response: " + response);
 
-            for (String path : possiblePaths) {
-                String downloadUrl = String.format("%s/download/%s/%s", routerUrl, sessionId, path);
-                LOGGER.info("Attempting to access: " + downloadUrl);
-
-                if (downloadDirectoryFromContainer(downloadUrl, filenamePrefix)) {
-                    LOGGER.info("Successfully downloaded files from path: " + path);
-                    return;
+            // Parse response to extract filename
+            if (response != null && response.contains("\"filename\"")) {
+                int start = response.indexOf("\"filename\":\"") + 12;
+                int end = response.indexOf("\"", start);
+                if (end > start) {
+                    return response.substring(start, end);
                 }
             }
 
-            LOGGER.warn("No files found in any of the attempted container paths");
-
         } catch (Exception e) {
-            LOGGER.error("Failed to download files from container", e);
+            LOGGER.warn("Could not get download info from CDP: " + e.getMessage());
         }
+
+        return null;
     }
 
-    private boolean downloadDirectoryFromContainer(String downloadUrl, String filenamePrefix) {
+    private void downloadSpecificFileFromContainer(URL seleniumUrl, String sessionId, String fileName) {
         try {
-            URL url = new URL(downloadUrl);
+            String routerUrl = seleniumUrl.toString();
+            String fileUrl = String.format("%s/download/%s/tmp/downloads/%s", routerUrl, sessionId, fileName);
+
+            LOGGER.info("Attempting to download specific file: " + fileUrl);
+
+            Path localDownloadDir = Paths.get("target/downloads");
+            Files.createDirectories(localDownloadDir);
+
+            URL url = new URL(fileUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
 
             int responseCode = conn.getResponseCode();
-            LOGGER.info("Response code for " + downloadUrl + ": " + responseCode);
+            LOGGER.info("Response code: " + responseCode);
 
             if (responseCode == 200) {
-                // Create local download directory
-                Path localDownloadDir = Paths.get("tmp/downloads");
-                Files.createDirectories(localDownloadDir);
+                Path filePath = localDownloadDir.resolve(fileName);
 
-                // Read the response (could be a file or directory listing)
-                try (InputStream inputStream = conn.getInputStream()) {
-                    // For now, just log the content type and size
-                    String contentType = conn.getContentType();
-                    long contentLength = conn.getContentLengthLong();
+                try (InputStream inputStream = conn.getInputStream();
+                     FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
 
-                    LOGGER.info("Content-Type: " + contentType + ", Content-Length: " + contentLength);
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    long totalBytes = 0;
 
-                    if (contentType != null && !contentType.startsWith("text/html")) {
-                        // It's likely a file, save it
-                        String fileName = filenamePrefix + "_downloaded_file";
-                        Path filePath = localDownloadDir.resolve(fileName);
-
-                        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
-                            byte[] buffer = new byte[8192];
-                            int bytesRead;
-                            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                                fos.write(buffer, 0, bytesRead);
-                            }
-                        }
-
-                        LOGGER.info("File saved to: " + filePath.toAbsolutePath());
-                        return true;
-                    } else {
-                        // It's likely an HTML directory listing, log it
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                            StringBuilder content = new StringBuilder();
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                content.append(line).append("\n");
-                            }
-                            LOGGER.info("Directory listing: " + content.toString());
-                        }
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                        totalBytes += bytesRead;
                     }
+
+                    LOGGER.info("Successfully downloaded file: " + fileName + " (" + totalBytes + " bytes) to " + filePath.toAbsolutePath());
                 }
-                return true;
             } else {
-                LOGGER.warn("Failed to access " + downloadUrl + " with response code: " + responseCode);
+                LOGGER.warn("Failed to download file with response code: " + responseCode);
             }
 
         } catch (Exception e) {
-            LOGGER.warn("Error accessing " + downloadUrl + ": " + e.getMessage());
+            LOGGER.error("Error downloading specific file: " + fileName, e);
         }
-
-        return false;
     }
 
-    public void sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
+    public String sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
         String url = String.format("%s/session/%s/goog/cdp/execute", selenoidHost, sessionId);
         LOGGER.warn(url);
 
@@ -227,5 +218,7 @@ public class IncognitoDownloadTest extends AbstractTest {
         if (responseCode != 200) {
             LOGGER.warn("Failed to execute CDP command, HTTP code: " + responseCode + ", response: " + response);
         }
+
+        return response.toString();
     }
 }
