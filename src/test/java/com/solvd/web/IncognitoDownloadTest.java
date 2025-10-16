@@ -42,8 +42,9 @@ public class IncognitoDownloadTest extends AbstractTest {
         pexelsPage.acceptCookiesIfPresent();
         pexelsPage.clickDownload();
 
-        LOGGER.info("Waiting for downloads to complete...");
-        waitForDownloadsToFinish(seleniumUrl, sessionId);
+        //LOGGER.info("Waiting for downloads to complete...");
+        //waitForDownloadsToFinish(seleniumUrl, sessionId);
+        pause(5);
 
         LOGGER.info("Downloading all files from container...");
         downloadAllFilesFromContainer(seleniumUrl, sessionId);
@@ -96,6 +97,7 @@ public class IncognitoDownloadTest extends AbstractTest {
         }
     }
 
+    /*
     private void waitForDownloadsToFinish(String seleniumUrl, String sessionId) {
         String routerUrl = seleniumUrl.replace("/wd/hub", "");
         String listUrl = String.format("%s/download/%s/tmp/downloads/", routerUrl, sessionId);
@@ -108,14 +110,16 @@ public class IncognitoDownloadTest extends AbstractTest {
                     LOGGER.info("Downloads completed in container.");
                     return;
                 }
-                Thread.sleep(1000);
+                Thread.sleep(5000);
             } catch (Exception e) {
                 LOGGER.warn("Waiting for downloads...", e);
             }
         }
         LOGGER.warn("⚠️ Timeout waiting for downloads to complete.");
     }
+    /*
 
+     */
     /**
      * Parse the /tmp/downloads/ directory exposed by Selenoid and download each file to target/downloads.
      */
@@ -210,6 +214,7 @@ public class IncognitoDownloadTest extends AbstractTest {
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) sb.append(line);
+            LOGGER.info(sb.toString());
             return sb.toString();
         }
     }
