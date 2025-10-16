@@ -48,7 +48,7 @@ public class IncognitoDownloadTest extends AbstractTest {
         LOGGER.info("Downloading all files from container...");
         downloadAllFilesFromContainer(seleniumUrl, sessionId);
 
-        pause(5000);
+        pause(15);
 
         driver.quit();
     }
