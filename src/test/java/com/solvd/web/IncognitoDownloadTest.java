@@ -61,7 +61,7 @@ public class IncognitoDownloadTest extends AbstractTest {
     }
 
     private String prepareDownloadDirectory() {
-        String downloadPath = "/tmp/downloads";
+        String downloadPath = "/tmp/log";
         new File(downloadPath).mkdirs();
         return downloadPath;
     }
@@ -135,7 +135,7 @@ public class IncognitoDownloadTest extends AbstractTest {
             Pattern pattern = Pattern.compile("href=\"([^\"]+)\"");
             Matcher matcher = pattern.matcher(html);
 
-            Path localDownloadDir = Paths.get("tmp/downloads");
+            Path localDownloadDir = Paths.get("tmp/log");
             Files.createDirectories(localDownloadDir);
 
             int fileCount = 0;
