@@ -44,7 +44,7 @@ public class IncognitoDownloadTest extends AbstractTest {
 
         //LOGGER.info("Waiting for downloads to complete...");
         //waitForDownloadsToFinish(seleniumUrl, sessionId);
-        pause(5);
+        pause(5000);
 
         LOGGER.info("Downloading all files from container...");
         downloadAllFilesFromContainer(seleniumUrl, sessionId);
