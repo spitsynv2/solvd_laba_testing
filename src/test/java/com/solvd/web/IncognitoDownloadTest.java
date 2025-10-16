@@ -127,7 +127,7 @@ public class IncognitoDownloadTest extends AbstractTest {
     private void downloadAllFilesFromContainer(String seleniumUrl, String sessionId) {
         try {
             String routerUrl = seleniumUrl.replace("/wd/hub", "");
-            String listUrl = String.format("%s/download/%s/tmp/downloads/", routerUrl, sessionId);
+            String listUrl = String.format("%s/download/%s/", routerUrl, sessionId);
             LOGGER.info("Listing files from: " + listUrl);
 
             String html = sendSimpleGet(listUrl);
