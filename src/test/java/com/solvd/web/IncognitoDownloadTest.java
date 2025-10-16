@@ -61,7 +61,7 @@ public class IncognitoDownloadTest extends AbstractTest {
     }
 
     private String prepareDownloadDirectory() {
-        String downloadPath = "/tmp/log";
+        String downloadPath = "/home/selenium/Downloads";
         new File(downloadPath).mkdirs();
         return downloadPath;
     }
