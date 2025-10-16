@@ -3,6 +3,7 @@ package com.solvd.web;
 import com.zebrunner.agent.core.webdriver.RemoteWebDriverFactory;
 import com.zebrunner.carina.core.AbstractTest;
 import com.solvd.web.gui.pages.PexelsMainPage;
+import com.zebrunner.carina.utils.R;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
@@ -11,21 +12,12 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.decorators.Decorated;
 import org.testng.annotations.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import com.zebrunner.carina.utils.R;
+import java.nio.file.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class IncognitoDownloadTest extends AbstractTest {
 
@@ -34,38 +26,29 @@ public class IncognitoDownloadTest extends AbstractTest {
     @Test
     public void testPexelsDownloadInIncognito() {
         String downloadPath = prepareDownloadDirectory();
-
         ChromeOptions options = getIncognitoChromeOptions();
 
-        URL seleniumUrl = getSeleniumUrl();
-
-        WebDriver webDriver = getDriver("Chrome Browser", options, seleniumUrl.toString());
+        WebDriver webDriver = getDriver("Chrome Browser", options);
         RemoteWebDriver driver = unwrapRemoteDriver(webDriver);
 
-        setDownloadBehavior(seleniumUrl, driver, downloadPath);
+        String seleniumUrl = getSeleniumUrl().toString();
+        String sessionId = driver.getSessionId().toString();
+
+        setDownloadBehavior(seleniumUrl, sessionId, downloadPath);
 
         driver.get("https://www.pexels.com/");
-
         PexelsMainPage pexelsPage = new PexelsMainPage(driver);
         pexelsPage.openPage();
         pexelsPage.acceptCookiesIfPresent();
         pexelsPage.clickDownload();
 
-        pause(10);
+        LOGGER.info("Waiting for downloads to complete...");
+        waitForDownloadsToFinish(seleniumUrl, sessionId);
 
-        String sessionId = driver.getSessionId().toString();
+        LOGGER.info("Downloading all files from container...");
+        downloadAllFilesFromContainer(seleniumUrl, sessionId);
 
-        // Get actual downloaded file information from browser
-        String downloadedFileName = getDownloadedFileNameFromBrowser(seleniumUrl, sessionId);
-
-        if (downloadedFileName != null) {
-            LOGGER.info("Found downloaded file: " + downloadedFileName);
-            downloadSpecificFileFromContainer(seleniumUrl, sessionId, downloadedFileName);
-        } else {
-            LOGGER.warn("Could not determine downloaded file name");
-        }
-
-        pause(10);
+        driver.quit();
     }
 
     private RemoteWebDriver unwrapRemoteDriver(WebDriver webDriver) {
@@ -74,11 +57,13 @@ public class IncognitoDownloadTest extends AbstractTest {
         }
         return (RemoteWebDriver) webDriver;
     }
+
     private String prepareDownloadDirectory() {
         String downloadPath = "/tmp/downloads";
         new File(downloadPath).mkdirs();
         return downloadPath;
     }
+
     private ChromeOptions getIncognitoChromeOptions() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito");
@@ -97,94 +82,101 @@ public class IncognitoDownloadTest extends AbstractTest {
         return seleniumUrl;
     }
 
-    private void setDownloadBehavior(URL seleniumUrl, RemoteWebDriver driver, String downloadPath) {
-        String sessionId = driver.getSessionId().toString();
+    private void setDownloadBehavior(String seleniumUrl, String sessionId, String downloadPath) {
         String cmd = "Page.setDownloadBehavior";
         String paramsJson = String.format(
                 "{\"behavior\":\"allow\",\"downloadPath\":\"%s\",\"eventsEnabled\":true}", downloadPath
         );
 
         try {
-            sendCDPCommand(seleniumUrl.toString(), sessionId, cmd, paramsJson);
+            sendCDPCommand(seleniumUrl, sessionId, cmd, paramsJson);
+            LOGGER.info("✅ Download behavior configured for: " + downloadPath);
         } catch (Exception e) {
             throw new RuntimeException("Failed to set download behavior", e);
         }
     }
 
+    private void waitForDownloadsToFinish(String seleniumUrl, String sessionId) {
+        String routerUrl = seleniumUrl.replace("/wd/hub", "");
+        String listUrl = String.format("%s/download/%s/tmp/downloads/", routerUrl, sessionId);
+        long timeout = System.currentTimeMillis() + 60_000; // 1 minute timeout
 
-
-    private String getDownloadedFileNameFromBrowser(URL seleniumUrl, String sessionId) {
-        try {
-            // Try to get download information using CDP
-            String cmd = "Browser.getDownloadCommands";
-            String params = "{}";
-
-            String response = sendCDPCommand(seleniumUrl.toString(), sessionId, cmd, params);
-            LOGGER.info("Download info response: " + response);
-
-            // Parse response to extract filename
-            if (response != null && response.contains("\"filename\"")) {
-                int start = response.indexOf("\"filename\":\"") + 12;
-                int end = response.indexOf("\"", start);
-                if (end > start) {
-                    return response.substring(start, end);
+        while (System.currentTimeMillis() < timeout) {
+            try {
+                String html = sendSimpleGet(listUrl);
+                if (!html.contains(".crdownload")) {
+                    LOGGER.info("Downloads completed in container.");
+                    return;
                 }
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                LOGGER.warn("Waiting for downloads...", e);
             }
-
-        } catch (Exception e) {
-            LOGGER.warn("Could not get download info from CDP: " + e.getMessage());
         }
-
-        return null;
+        LOGGER.warn("⚠️ Timeout waiting for downloads to complete.");
     }
 
-    private void downloadSpecificFileFromContainer(URL seleniumUrl, String sessionId, String fileName) {
+    /**
+     * Parse the /tmp/downloads/ directory exposed by Selenoid and download each file to target/downloads.
+     */
+    private void downloadAllFilesFromContainer(String seleniumUrl, String sessionId) {
         try {
-            String routerUrl = seleniumUrl.toString();
-            String fileUrl = String.format("%s/download/%s/tmp/downloads/%s", routerUrl, sessionId, fileName);
+            String routerUrl = seleniumUrl.replace("/wd/hub", "");
+            String listUrl = String.format("%s/download/%s/tmp/downloads/", routerUrl, sessionId);
+            LOGGER.info("Listing files from: " + listUrl);
 
-            LOGGER.info("Attempting to download specific file: " + fileUrl);
+            String html = sendSimpleGet(listUrl);
 
-            Path localDownloadDir = Paths.get("target/downloads");
+            Pattern pattern = Pattern.compile("href=\"([^\"]+)\"");
+            Matcher matcher = pattern.matcher(html);
+
+            Path localDownloadDir = Paths.get("tmp/downloads");
             Files.createDirectories(localDownloadDir);
 
-            URL url = new URL(fileUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
+            int fileCount = 0;
+            while (matcher.find()) {
+                String fileName = matcher.group(1);
+                if (fileName.equals("../") || fileName.endsWith(".crdownload")) continue;
 
-            int responseCode = conn.getResponseCode();
-            LOGGER.info("Response code: " + responseCode);
-
-            if (responseCode == 200) {
+                String fileUrl = listUrl + fileName;
                 Path filePath = localDownloadDir.resolve(fileName);
 
-                try (InputStream inputStream = conn.getInputStream();
-                     FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
+                LOGGER.info("Downloading: " + fileUrl);
 
-                    byte[] buffer = new byte[8192];
-                    int bytesRead;
-                    long totalBytes = 0;
+                URL url = new URL(fileUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
 
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        fos.write(buffer, 0, bytesRead);
-                        totalBytes += bytesRead;
+                if (conn.getResponseCode() == 200) {
+                    try (InputStream inputStream = conn.getInputStream();
+                         FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
+
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        long totalBytes = 0;
+
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            fos.write(buffer, 0, bytesRead);
+                            totalBytes += bytesRead;
+                        }
+
+                        LOGGER.info("Saved file: {} ({} bytes)", fileName, totalBytes);
+                        fileCount++;
                     }
-
-                    LOGGER.info("Successfully downloaded file: " + fileName + " (" + totalBytes + " bytes) to " + filePath.toAbsolutePath());
+                } else {
+                    LOGGER.warn("Failed to download {}, HTTP {}", fileName, conn.getResponseCode());
                 }
-            } else {
-                LOGGER.warn("Failed to download file with response code: " + responseCode);
             }
 
+            LOGGER.info("Total files downloaded: {}", fileCount);
+
         } catch (Exception e) {
-            LOGGER.error("Error downloading specific file: " + fileName, e);
+            LOGGER.error("Error downloading files from container", e);
         }
     }
 
     public String sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
         String url = String.format("%s/session/%s/goog/cdp/execute", selenoidHost, sessionId);
-        LOGGER.warn(url);
-
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
@@ -196,29 +188,29 @@ public class IncognitoDownloadTest extends AbstractTest {
             os.write(body.getBytes(StandardCharsets.UTF_8));
         }
 
-        int responseCode = conn.getResponseCode();
-
-        InputStream is;
-        if (responseCode >= 200 && responseCode < 300) {
-            is = conn.getInputStream();
-        } else {
-            is = conn.getErrorStream();
-        }
+        InputStream is = conn.getResponseCode() >= 200 && conn.getResponseCode() < 300 ?
+                conn.getInputStream() : conn.getErrorStream();
 
         StringBuilder response = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
-                response.append(line).append("\n");
+                response.append(line).append('\n');
             }
         }
 
-        LOGGER.info("CDP command response: " + response);
-
-        if (responseCode != 200) {
-            LOGGER.warn("Failed to execute CDP command, HTTP code: " + responseCode + ", response: " + response);
-        }
-
+        LOGGER.debug("CDP response: {}", response);
         return response.toString();
+    }
+
+    private String sendSimpleGet(String urlStr) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
+        conn.setRequestMethod("GET");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) sb.append(line);
+            return sb.toString();
+        }
     }
 }
