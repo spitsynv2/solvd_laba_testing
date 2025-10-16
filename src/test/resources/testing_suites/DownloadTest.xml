@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite verbose="1" name="WebTests suite" parallel="methods">
+
+    <test name="Incognito Download Test">
+        <classes>
+            <class name="com.solvd.web.IncognitoDownloadTest">
+                <methods>
+                    <include name="testPexelsDownloadInIncognito"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+
+</suite>
