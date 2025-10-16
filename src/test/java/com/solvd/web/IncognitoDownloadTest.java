@@ -135,7 +135,7 @@ public class IncognitoDownloadTest extends AbstractTest {
             Pattern pattern = Pattern.compile("href=\"([^\"]+)\"");
             Matcher matcher = pattern.matcher(html);
 
-            Path localDownloadDir = Paths.get("/home/selenium/Downloads");
+            Path localDownloadDir = Paths.get("tmp/downloads");
             Files.createDirectories(localDownloadDir);
 
             int fileCount = 0;
