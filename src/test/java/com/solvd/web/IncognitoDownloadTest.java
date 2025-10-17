@@ -49,8 +49,6 @@ public class IncognitoDownloadTest extends AbstractTest {
         downloadAllFilesFromContainer(seleniumUrl, sessionId);
 
         pause(15);
-
-        driver.quit();
     }
 
     private RemoteWebDriver unwrapRemoteDriver(WebDriver webDriver) {
