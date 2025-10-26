@@ -7,6 +7,7 @@ import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
 import com.zebrunner.carina.webdriver.CarinaDriver;
 import com.zebrunner.carina.webdriver.IDriverPool;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
@@ -114,7 +115,9 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTestSingle3(String TUID, int position) { runSameFlow(position); }
 
     private void runSameFlow(int position) {
-        EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
+        WebDriver driver = getDriver();
+        driver.manage().window().setSize(new Dimension(1920,1080));
+        EbayHomePageBase ebayHomePage = initPage(driver, EbayHomePageBase.class);
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
