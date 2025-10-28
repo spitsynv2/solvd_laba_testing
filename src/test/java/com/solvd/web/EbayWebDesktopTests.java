@@ -121,7 +121,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         chromeOptions.addArguments("--window-size=1920,1080");
         chromeOptions.addArguments("--headless=new");
         chromeOptions.addArguments("--disable-gpu");
-        WebDriver webDriver = new ChromeDriver(chromeOptions);
+        RemoteWebDriver webDriver = new RemoteWebDriver(chromeOptions);
 
         EbayHomePageBase ebayHomePage = initPage(webDriver, EbayHomePageBase.class);
         ebayHomePage.open();
