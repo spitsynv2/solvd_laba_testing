@@ -117,13 +117,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTestSingle3(String TUID, int position) { runSameFlow(position); }
 
     private void runSameFlow(int position) {
-        ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.addArguments("--window-size=1920,1080");
-        chromeOptions.addArguments("--headless=new");
-        chromeOptions.addArguments("--disable-gpu");
-        RemoteWebDriver webDriver = new RemoteWebDriver(chromeOptions);
-
-        EbayHomePageBase ebayHomePage = initPage(webDriver, EbayHomePageBase.class);
+        EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
