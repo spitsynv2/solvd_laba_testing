@@ -73,9 +73,6 @@ public class IncognitoDownloadTest extends AbstractTest {
         return seleniumUrl;
     }
 
-
-
-
     private void setDownloadBehavior(String seleniumUrl, String sessionId, String downloadPath) {
         String cmd = "Page.setDownloadBehavior";
         String paramsJson = String.format(
