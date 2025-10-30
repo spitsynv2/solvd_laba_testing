@@ -1,34 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.solvd</groupId>
-	<artifactId>solvd_laba_testing</artifactId>
+	<groupId>com.zebrunner</groupId>
+	<artifactId>zbr-qa</artifactId>
 	<version>1.0</version>
 	<packaging>jar</packaging>
-	<name>Solvd_Laba_Testing</name>
-	<url>https://github.com/spitsynv2/solvd_laba_testing</url>
+	<name>zbr-qa</name>
+	<url>https://zebrunner.org/</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<carina-core_version>1.3.0</carina-core_version>
-		<carina-dataprovider.version>1.2.4</carina-dataprovider.version>
-		<carina-api.version>1.2.4</carina-api.version>
-		<carina-aws-s3.version>1.2.5</carina-aws-s3.version>
-		<carina-azure.version>1.2.5</carina-azure.version>
-		<carina-appcenter.version>1.2.7</carina-appcenter.version>
-
-		<java.version>11</java.version>
-		<zebrunner-agent.version>1.9.8</zebrunner-agent.version>
-		<suite>WebTest</suite>
+		<java.version>21</java.version>
+		<suite>helloWorld</suite>
 	</properties>
 
-	<!--repositories>
+	<repositories>
 		<repository>
-			<id>zebrunner_snapshots</id>
-			<name>zebrunner Snapshots</name>
+			<id>zebrunner-ce-snapshots</id>
 			<url>https://public-nexus.zebrunner.com/repository/ce-snapshots/</url>
 			<releases>
 				<enabled>false</enabled>
@@ -37,81 +28,110 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-	</repositories-->
+	</repositories>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.zebrunner</groupId>
-			<artifactId>carina-core</artifactId>
-			<version>${carina-core_version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.zebrunner</groupId>
-			<artifactId>carina-dataprovider</artifactId>
-			<version>${carina-dataprovider.version}</version>
+			<artifactId>carina-api</artifactId>
+			<version>1.2.4</version>
 			<exclusions>
 				<exclusion>
-					<groupId>org.testing</groupId>
+					<groupId>javax.mail</groupId>
 					<artifactId>*</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.zebrunner</groupId>
-			<artifactId>carina-api</artifactId>
-			<version>${carina-api.version}</version>
+			<artifactId>carina-dataprovider</artifactId>
+			<version>1.2.4</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.testng</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.zebrunner</groupId>
-			<artifactId>carina-aws-s3</artifactId>
-			<version>${carina-aws-s3.version}</version>
+			<artifactId>carina-core</artifactId>
+			<version>1.2.9</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.zebrunner</groupId>
+					<artifactId>agent-testng-pluggable</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.zebrunner</groupId>
-			<artifactId>carina-azure</artifactId>
-			<version>${carina-azure.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.zebrunner</groupId>
-			<artifactId>carina-appcenter</artifactId>
-			<version>${carina-appcenter.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.30</version>
-		</dependency>
-		<!-- Log4j2 -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>2.17.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>2.17.1</version>
+			<artifactId>agent-testng-pluggable</artifactId>
+			<version>1.9.13</version>
 		</dependency>
 
 		<dependency>
-			<!--we need it to reuse benefits of zebrunner testng agent for webdriver
-				sesssion(s) declaration -->
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.14.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.30</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.15.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<version>6.10.0.202406032230-r</version>
+		</dependency>
+
+		<dependency>
 			<groupId>net.bytebuddy</groupId>
 			<artifactId>byte-buddy</artifactId>
 			<version>1.14.5</version>
 		</dependency>
-		<dependency>
-			<groupId>org.mybatis</groupId>
-			<artifactId>mybatis</artifactId>
-			<version>3.5.6</version>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>42.5.5</version>
-		</dependency>
 
+		<dependency>
+			<groupId>jakarta.mail</groupId>
+			<artifactId>jakarta.mail-api</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.angus</groupId>
+			<artifactId>jakarta.mail</artifactId>
+			<version>2.0.3</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.qaprosoft</groupId>
+			<artifactId>carina-utils</artifactId>
+			<version>1.1.6.2248-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.12.0</version> <!-- or 3.14.0 if compatible -->
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 
 	<build>
 		<plugins>
@@ -123,10 +143,11 @@
 					<release>${java.version}</release>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.1.2</version>
 				<executions>
 					<execution>
 						<id>copy</id>
@@ -141,25 +162,27 @@
 						<artifactItem>
 							<groupId>com.zebrunner</groupId>
 							<artifactId>agent-core</artifactId>
-							<version>${zebrunner-agent.version}</version>
+							<version>1.9.13</version>
 							<outputDirectory>${project.build.directory}/agent</outputDirectory>
 							<destFileName>zebrunner-agent.jar</destFileName>
 						</artifactItem>
 					</artifactItems>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.0.0-M4</version>
 				<configuration>
 					<argLine>-javaagent:${project.build.directory}/agent/zebrunner-agent.jar</argLine>
 					<useSystemClassLoader>false</useSystemClassLoader>
 					<suiteXmlFiles>
-						<suiteXmlFile>${project.build.directory}/test-classes/testing_suites/${suite}.xml</suiteXmlFile>
+						<suiteXmlFile>${project.build.directory}/test-classes/testng_suites/${suite}.xml</suiteXmlFile>
 					</suiteXmlFiles>
 				</configuration>
 			</plugin>
 		</plugins>
+
 	</build>
 </project>

@@ -1,5 +1,6 @@
 package com.solvd.web;
 
+import com.qaprosoft.carina.core.foundation.report.ReportContext;
 import com.zebrunner.agent.core.webdriver.RemoteWebDriverFactory;
 import com.zebrunner.carina.core.AbstractTest;
 import com.solvd.web.gui.pages.PexelsMainPage;
@@ -20,14 +21,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class IncognitoDownloadTest extends AbstractTest {
-
     private static final Logger LOGGER = LogManager.getLogger(IncognitoDownloadTest.class);
+
 
     @Test
     public void testPexelsDownloadInIncognito() {
-        String downloadPath = prepareDownloadDirectory();
+        String downloadPath = "/home/selenium/Downloads";
         ChromeOptions options = getIncognitoChromeOptions();
-
         WebDriver webDriver = getDriver("Chrome Browser", options);
         RemoteWebDriver driver = unwrapRemoteDriver(webDriver);
 
@@ -42,13 +42,10 @@ public class IncognitoDownloadTest extends AbstractTest {
         pexelsPage.acceptCookiesIfPresent();
         pexelsPage.clickDownload();
 
-        //LOGGER.info("Waiting for downloads to complete...");
-        //waitForDownloadsToFinish(seleniumUrl, sessionId);
-
-        LOGGER.info("Downloading all files from container...");
-        downloadAllFilesFromContainer(seleniumUrl, sessionId);
-
+        LOGGER.info("Waiting for downloads to complete...");
         pause(15);
+
+        ReportContext.getArtifact(driver,"pexels-ira-martyniuk-2147702405-34350110.jpg");
     }
 
     private RemoteWebDriver unwrapRemoteDriver(WebDriver webDriver) {
@@ -56,12 +53,6 @@ public class IncognitoDownloadTest extends AbstractTest {
             return (RemoteWebDriver) ((Decorated<?>) webDriver).getOriginal();
         }
         return (RemoteWebDriver) webDriver;
-    }
-
-    private String prepareDownloadDirectory() {
-        String downloadPath = "/home/selenium/Downloads";
-        new File(downloadPath).mkdirs();
-        return downloadPath;
     }
 
     private ChromeOptions getIncognitoChromeOptions() {
@@ -82,6 +73,9 @@ public class IncognitoDownloadTest extends AbstractTest {
         return seleniumUrl;
     }
 
+
+
+
     private void setDownloadBehavior(String seleniumUrl, String sessionId, String downloadPath) {
         String cmd = "Page.setDownloadBehavior";
         String paramsJson = String.format(
@@ -90,7 +84,7 @@ public class IncognitoDownloadTest extends AbstractTest {
 
         try {
             sendCDPCommand(seleniumUrl, sessionId, cmd, paramsJson);
-            LOGGER.info("✅ Download behavior configured for: " + downloadPath);
+            LOGGER.info("Download behavior configured for: " + downloadPath);
         } catch (Exception e) {
             throw new RuntimeException("Failed to set download behavior", e);
         }
