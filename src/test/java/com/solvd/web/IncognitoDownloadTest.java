@@ -14,12 +14,12 @@ import org.openqa.selenium.support.decorators.Decorated;
 import org.testng.annotations.Test;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 public class IncognitoDownloadTest extends AbstractTest {
-    private static final Logger LOGGER = LogManager.getLogger(IncognitoDownloadTest.class);
-
+    private static final Logger LOGGER = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     @Test
     public void testPexelsDownloadInIncognito() {
