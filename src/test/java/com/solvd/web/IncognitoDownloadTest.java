@@ -1,10 +1,10 @@
 package com.solvd.web;
 
-import com.qaprosoft.carina.core.foundation.report.ReportContext;
 import com.zebrunner.agent.core.webdriver.RemoteWebDriverFactory;
 import com.zebrunner.carina.core.AbstractTest;
 import com.solvd.web.gui.pages.PexelsMainPage;
 import com.zebrunner.carina.utils.R;
+import com.zebrunner.carina.utils.report.ReportContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
@@ -26,11 +26,11 @@ public class IncognitoDownloadTest extends AbstractTest {
 
     @Test
     public void testPexelsDownloadInIncognito() {
-        String downloadPath = "/home/selenium/Downloads";
         ChromeOptions options = getIncognitoChromeOptions();
-        WebDriver webDriver = getDriver("Chrome Browser", options);
+        WebDriver webDriver = getDriver("Chrome", options);
         RemoteWebDriver driver = unwrapRemoteDriver(webDriver);
 
+        String downloadPath = prepareDownloadDirectory();
         String seleniumUrl = getSeleniumUrl().toString();
         String sessionId = driver.getSessionId().toString();
 
@@ -45,7 +45,51 @@ public class IncognitoDownloadTest extends AbstractTest {
         LOGGER.info("Waiting for downloads to complete...");
         pause(15);
 
-        ReportContext.getArtifact(driver,"pexels-ira-martyniuk-2147702405-34350110.jpg");
+        getSessionArtifact(driver, "pexels-ira-martyniuk-2147702405-34350110.jpg");
+        saveFileToReportContext();
+    }
+
+    private void getSessionArtifact(RemoteWebDriver driver, String fullFileName) {
+        try {
+            String seleniumUrl = R.CONFIG.get("selenium_url");
+
+            if (seleniumUrl != null && !seleniumUrl.contains("localhost")) {
+                File file = ReportContext.getArtifact(driver, fullFileName);
+                LOGGER.info("Remote run detected — artifact downloaded successfully: {}", file.getName());
+            } else {
+                LOGGER.debug("Skipping artifact retrieval — running on localhost (URL: {})", seleniumUrl);
+            }
+
+        } catch (Exception e) {
+            LOGGER.error("Failed to retrieve artifact '{}' for driver: {}", fullFileName, driver, e);
+        }
+    }
+
+    private static void saveFileToReportContext() {
+        String filePath;
+        if (R.CONFIG.get("selenium_url").contains("localhost")) {
+            filePath = "/Users/vadymspitsyn/IdeaProjects/solvd_laba_testing/src/test/resources/downloadsV2/pexels-ira-martyniuk-2147702405-34350110.jpg";
+        } else {
+            filePath = "/home/selenium/Downloads/DownloadFile.txt";
+        }
+        try {
+            ReportContext.saveArtifact(new File(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String prepareDownloadDirectory() {
+        String downloadPath;
+        if (R.CONFIG.get("selenium_url").contains("localhost")) {
+            downloadPath = "/Users/vadymspitsyn/IdeaProjects/solvd_laba_testing/src/test/resources/downloadsV2";
+            LOGGER.info("Using local download path: " + downloadPath);
+        } else {
+            downloadPath = "/home/selenium/Downloads";
+            LOGGER.info("Using remote download path: " + downloadPath);
+        }
+        new File(downloadPath).mkdirs();
+        return downloadPath;
     }
 
     private RemoteWebDriver unwrapRemoteDriver(WebDriver webDriver) {
