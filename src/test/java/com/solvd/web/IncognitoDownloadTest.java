@@ -16,9 +16,6 @@ import org.testng.annotations.Test;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class IncognitoDownloadTest extends AbstractTest {
     private static final Logger LOGGER = LogManager.getLogger(IncognitoDownloadTest.class);
@@ -43,39 +40,42 @@ public class IncognitoDownloadTest extends AbstractTest {
         pexelsPage.clickDownload();
 
         LOGGER.info("Waiting for downloads to complete...");
-        pause(15);
+        pause(5);
 
-        getSessionArtifact(driver, "pexels-ira-martyniuk-2147702405-34350110.jpg");
-        saveFileToReportContext();
+        String artifactFileName = "pexels-ira-martyniuk-2147702405-34350110.jpg";
+        getSessionArtifact(driver, artifactFileName);
+        saveFileToReportContext(downloadPath, artifactFileName);
     }
 
-    private void getSessionArtifact(RemoteWebDriver driver, String fullFileName) {
+    private void getSessionArtifact(RemoteWebDriver driver, String artifactFileName) {
+        String seleniumUrl = R.CONFIG.get("selenium_url");
+
+        if (seleniumUrl.contains("localhost")) {
+            LOGGER.debug("Skipping artifact retrieval — running on localhost (URL: {})", seleniumUrl);
+            return;
+        }
+
         try {
-            String seleniumUrl = R.CONFIG.get("selenium_url");
-
-            if (seleniumUrl != null && !seleniumUrl.contains("localhost")) {
-                File file = ReportContext.getArtifact(driver, fullFileName);
-                LOGGER.info("Remote run detected — artifact downloaded successfully: {}", file.getName());
-            } else {
-                LOGGER.debug("Skipping artifact retrieval — running on localhost (URL: {})", seleniumUrl);
-            }
-
+            File file = ReportContext.getArtifact(driver, artifactFileName);
+            LOGGER.info("Remote run detected — artifact '{}' downloaded and attached to session in reporting portal successfully.", file.getName());
         } catch (Exception e) {
-            LOGGER.error("Failed to retrieve artifact '{}' for driver: {}", fullFileName, driver, e);
+            LOGGER.error("Failed to retrieve artifact '{}' for driver: {}", artifactFileName, driver, e);
         }
     }
 
-    private static void saveFileToReportContext() {
-        String filePath;
-        if (R.CONFIG.get("selenium_url").contains("localhost")) {
-            filePath = "/Users/vadymspitsyn/IdeaProjects/solvd_laba_testing/src/test/resources/downloadsV2/pexels-ira-martyniuk-2147702405-34350110.jpg";
+    private static void saveFileToReportContext(String downloadPath, String artifactFileName) {
+        String seleniumUrl = R.CONFIG.get("selenium_url");
+
+        if (seleniumUrl.contains("localhost")) {
+            String filePath = downloadPath + "/" + artifactFileName;
+            try {
+                ReportContext.saveArtifact(new File(filePath));
+                LOGGER.info("Local artifact '{}' saved to report context successfully.", artifactFileName);
+            } catch (IOException e) {
+                LOGGER.error("Failed to save local artifact '{}' to report context.", artifactFileName, e);
+            }
         } else {
-            filePath = "/home/selenium/Downloads/DownloadFile.txt";
-        }
-        try {
-            ReportContext.saveArtifact(new File(filePath));
-        } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.debug("Skipping artifact save — remote run detected (selenium_url: {})", seleniumUrl);
         }
     }
 
@@ -131,88 +131,6 @@ public class IncognitoDownloadTest extends AbstractTest {
         }
     }
 
-    /*
-    private void waitForDownloadsToFinish(String seleniumUrl, String sessionId) {
-        String routerUrl = seleniumUrl.replace("/wd/hub", "");
-        String listUrl = String.format("%s/download/%s/tmp/downloads/", routerUrl, sessionId);
-        long timeout = System.currentTimeMillis() + 60_000; // 1 minute timeout
-
-        while (System.currentTimeMillis() < timeout) {
-            try {
-                String html = sendSimpleGet(listUrl);
-                if (!html.contains(".crdownload")) {
-                    LOGGER.info("Downloads completed in container.");
-                    return;
-                }
-                Thread.sleep(5000);
-            } catch (Exception e) {
-                LOGGER.warn("Waiting for downloads...", e);
-            }
-        }
-        LOGGER.warn("⚠️ Timeout waiting for downloads to complete.");
-    }
-    /*
-
-     */
-    /**
-     * Parse the /tmp/downloads/ directory exposed by Selenoid and download each file to target/downloads.
-     */
-    private void downloadAllFilesFromContainer(String seleniumUrl, String sessionId) {
-        try {
-            String routerUrl = seleniumUrl.replace("/wd/hub", "");
-            String listUrl = String.format("%s/download/%s/", routerUrl, sessionId);
-            LOGGER.info("Listing files from: " + listUrl);
-
-            String html = sendSimpleGet(listUrl);
-
-            Pattern pattern = Pattern.compile("href=\"([^\"]+)\"");
-            Matcher matcher = pattern.matcher(html);
-
-            Path localDownloadDir = Paths.get("tmp/log");
-            Files.createDirectories(localDownloadDir);
-
-            int fileCount = 0;
-            while (matcher.find()) {
-                String fileName = matcher.group(1);
-                if (fileName.equals("../") || fileName.endsWith(".crdownload")) continue;
-
-                String fileUrl = listUrl + fileName;
-                Path filePath = localDownloadDir.resolve(fileName);
-
-                LOGGER.info("Downloading: " + fileUrl);
-
-                URL url = new URL(fileUrl);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-
-                if (conn.getResponseCode() == 200) {
-                    try (InputStream inputStream = conn.getInputStream();
-                         FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
-
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        long totalBytes = 0;
-
-                        while ((bytesRead = inputStream.read(buffer)) != -1) {
-                            fos.write(buffer, 0, bytesRead);
-                            totalBytes += bytesRead;
-                        }
-
-                        LOGGER.info("Saved file: {} ({} bytes)", fileName, totalBytes);
-                        fileCount++;
-                    }
-                } else {
-                    LOGGER.warn("Failed to download {}, HTTP {}", fileName, conn.getResponseCode());
-                }
-            }
-
-            LOGGER.info("Total files downloaded: {}", fileCount);
-
-        } catch (Exception e) {
-            LOGGER.error("Error downloading files from container", e);
-        }
-    }
-
     public String sendCDPCommand(String selenoidHost, String sessionId, String cmd, String paramsJson) throws Exception {
         String url = String.format("%s/session/%s/goog/cdp/execute", selenoidHost, sessionId);
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
@@ -239,17 +157,5 @@ public class IncognitoDownloadTest extends AbstractTest {
 
         LOGGER.debug("CDP response: {}", response);
         return response.toString();
-    }
-
-    private String sendSimpleGet(String urlStr) throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-        conn.setRequestMethod("GET");
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) sb.append(line);
-            LOGGER.info(sb.toString());
-            return sb.toString();
-        }
     }
 }
