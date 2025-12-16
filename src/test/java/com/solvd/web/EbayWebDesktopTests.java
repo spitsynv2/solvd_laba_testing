@@ -121,6 +121,14 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
+        LOGGER.info("============= STARTING IDLE TEST ===============");
+        try {
+            Thread.sleep(420000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        LOGGER.info("============= IDLE TEST FINISHED ===============");
+
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
 
@@ -129,6 +137,8 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String expectedItemName = itemPageBase.getItemName();
 
         Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
+
+        LOGGER.info("============= TEST SURVIVED IDLE ===============");
     }
 
     @DataProvider(name = "DP1", parallel = true) // keep parallel to observe scheduling/idle gaps
