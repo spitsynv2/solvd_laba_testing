@@ -118,6 +118,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
     private void runSameFlow(int position) {
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
+        getDriver().manage().window().setSize(new Dimension(1920,1080));
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
@@ -129,8 +130,6 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String expectedItemName = itemPageBase.getItemName();
 
         Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
-
-        LOGGER.info("============= TEST SURVIVED IDLE ===============");
     }
 
     @DataProvider(name = "DP1", parallel = true) // keep parallel to observe scheduling/idle gaps
