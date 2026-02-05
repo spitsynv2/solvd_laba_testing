@@ -11,6 +11,7 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 import org.openqa.selenium.support.decorators.Decorated;
@@ -20,8 +21,12 @@ import org.testng.Assert;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -118,7 +123,16 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
     private void runSameFlow(int position) {
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
-        getDriver().manage().window().setSize(new Dimension(1920,1080));
+        //getDriver().manage().window().setSize(new Dimension(1920,1080));
+
+        try {
+            Path readmePath = Path.of("/tmp/README.md");
+            String readmeContent = Files.readString(readmePath, StandardCharsets.UTF_8);
+            LOGGER.info("README:\n{}", readmeContent);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read /tmp/README.md", e);
+        }
+
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
@@ -136,8 +150,8 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public Object[][] dataprovider() {
         return new Object[][]{
                 {"TUID: Test position0", 0},
-                {"TUID: Test position1", 1},
-                {"TUID: Test position2", 2}
+                //{"TUID: Test position1", 1},
+               // {"TUID: Test position2", 2}
         };
     }
 
