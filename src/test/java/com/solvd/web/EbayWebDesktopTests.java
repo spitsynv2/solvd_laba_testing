@@ -21,6 +21,7 @@ import org.testng.Assert;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -149,11 +150,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
                 return;
             }
 
-            // If the file could be large, this streams line-by-line (safer than readString/readAllLines)
-            try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
-                lines.forEach(line -> LOGGER.info("[FILE] {}", line));
-            }
-
+            LOGGER.info("[FILE] {}",Files.readAllLines(path));
         } catch (IOException e) {
             LOGGER.info("Failed to read log file: {}. Reason: {}", filePath, e.toString());
         }
