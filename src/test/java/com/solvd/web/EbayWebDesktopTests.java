@@ -124,15 +124,6 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     private void runSameFlow(int position) {
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         //getDriver().manage().window().setSize(new Dimension(1920,1080));
-
-        try {
-            Path readmePath = Path.of("/test/README.md");
-            String readmeContent = Files.readString(readmePath, StandardCharsets.UTF_8);
-            LOGGER.info("README:\n{}", readmeContent);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read /tmp/README.md", e);
-        }
-
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
