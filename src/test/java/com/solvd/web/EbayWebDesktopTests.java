@@ -127,7 +127,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
-        logFileToInfo("tmp/README.md");
+        logFileToInfo("/tmp/README.md");
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
