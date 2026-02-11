@@ -123,9 +123,11 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
     private void runSameFlow(int position) {
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
-        //getDriver().manage().window().setSize(new Dimension(1920,1080));
+        getDriver().manage().window().setSize(new Dimension(1920,1080));
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
+
+        logFileToInfo("tmp/README.md");
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
@@ -135,6 +137,26 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String expectedItemName = itemPageBase.getItemName();
 
         Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
+    }
+
+
+    private void logFileToInfo(String filePath) {
+        try {
+            Path path = Path.of(filePath);
+
+            if (!Files.exists(path)) {
+                LOGGER.info("Log file not found: {}", filePath);
+                return;
+            }
+
+            // If the file could be large, this streams line-by-line (safer than readString/readAllLines)
+            try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
+                lines.forEach(line -> LOGGER.info("[FILE] {}", line));
+            }
+
+        } catch (IOException e) {
+            LOGGER.info("Failed to read log file: {}. Reason: {}", filePath, e.toString());
+        }
     }
 
     @DataProvider(name = "DP1", parallel = true) // keep parallel to observe scheduling/idle gaps
