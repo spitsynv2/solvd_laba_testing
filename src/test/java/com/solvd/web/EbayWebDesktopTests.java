@@ -140,13 +140,9 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         logCurrentDriverInfoUnwrapped();
 
         String downloadPath = prepareDownloadDirectory();
-        String seleniumUrl = getSeleniumUrl().toString();
         String sessionId = driver.getSessionId().toString();
 
         MitmProxyClient mitm = MitmProxyClient.fromSeleniumHubAndSession(getSeleniumUrl(), sessionId);
-
-        logFileToInfo("/tmp/README.md");
-
 
         Path mitmArtifact = null;
         try {
@@ -164,22 +160,6 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         String expectedItemName = itemPageBase.getItemName();
 
         Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
-    }
-
-
-    private void logFileToInfo(String filePath) {
-        try {
-            Path path = Path.of(filePath);
-
-            if (!Files.exists(path)) {
-                LOGGER.info("Log file not found: {}", filePath);
-                return;
-            }
-
-            LOGGER.info("[FILE] {}",Files.readAllLines(path));
-        } catch (IOException e) {
-            LOGGER.info("Failed to read log file: {}. Reason: {}", filePath, e.toString());
-        }
     }
 
     @DataProvider(name = "DP1", parallel = true) // keep parallel to observe scheduling/idle gaps
