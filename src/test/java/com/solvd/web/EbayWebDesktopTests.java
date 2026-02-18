@@ -1,9 +1,14 @@
 package com.solvd.web;
 
+import com.solvd.util.MitmProxyClient;
 import com.solvd.web.gui.pages.common.ebay.*;
+import com.zebrunner.agent.core.webdriver.RemoteWebDriverFactory;
 import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
+import com.zebrunner.carina.utils.R;
+import com.zebrunner.carina.utils.report.ReportContext;
+import com.zebrunner.carina.utils.report.SessionContext;
 import com.zebrunner.carina.webdriver.CarinaDriver;
 import com.zebrunner.carina.webdriver.IDriverPool;
 import org.openqa.selenium.Capabilities;
@@ -25,9 +30,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,12 +131,30 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTestSingle3(String TUID, int position) { runSameFlow(position); }
 
     private void runSameFlow(int position) {
+        WebDriver webDriver = getDriver();
+        RemoteWebDriver driver = unwrapRemoteDriver(webDriver);
+
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         getDriver().manage().window().setSize(new Dimension(1920,1080));
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
+        String downloadPath = prepareDownloadDirectory();
+        String seleniumUrl = getSeleniumUrl().toString();
+        String sessionId = driver.getSessionId().toString();
+
+        MitmProxyClient mitm = MitmProxyClient.fromSeleniumHubAndSession(getSeleniumUrl(), sessionId);
+
         logFileToInfo("/tmp/README.md");
+
+
+        Path mitmArtifact = null;
+        try {
+            mitmArtifact = mitm.downloadHarOrDumpBestEffort(Paths.get(downloadPath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        SessionContext.saveArtifact(mitmArtifact);
 
         CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
         ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
@@ -202,5 +228,37 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         } else {
             LOGGER.warn("Could not find CarinaDriver associated with current WebDriver instance");
         }
+    }
+
+    private String prepareDownloadDirectory() {
+        String downloadPath;
+        if (R.CONFIG.get("selenium_url").contains("localhost")) {
+            downloadPath = "/Users/vadymspitsyn/IdeaProjects/solvd_laba_testing/src/test/resources/downloadsV2";
+            LOGGER.info("Using local download path: " + downloadPath);
+        } else {
+            downloadPath = "/home/selenium/Downloads";
+            LOGGER.info("Using remote download path: " + downloadPath);
+        }
+        new File(downloadPath).mkdirs();
+        return downloadPath;
+    }
+
+    private RemoteWebDriver unwrapRemoteDriver(WebDriver webDriver) {
+        if (webDriver instanceof Decorated<?>) {
+            return (RemoteWebDriver) ((Decorated<?>) webDriver).getOriginal();
+        }
+        return (RemoteWebDriver) webDriver;
+    }
+
+    private URL getSeleniumUrl() {
+        URL seleniumUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
+        if (seleniumUrl == null) {
+            try {
+                seleniumUrl = new URL(R.CONFIG.get("selenium_url"));
+            } catch (MalformedURLException e) {
+                throw new RuntimeException("Invalid Selenium URL", e);
+            }
+        }
+        return seleniumUrl;
     }
 }
