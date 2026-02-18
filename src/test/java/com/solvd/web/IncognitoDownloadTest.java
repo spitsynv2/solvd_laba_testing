@@ -84,12 +84,12 @@ public class IncognitoDownloadTest extends AbstractTest {
         String downloadPath;
         if (R.CONFIG.get("selenium_url").contains("localhost")) {
             downloadPath = "/Users/vadymspitsyn/IdeaProjects/solvd_laba_testing/src/test/resources/downloadsV2";
-            new File(downloadPath);
             LOGGER.info("Using local download path: " + downloadPath);
         } else {
             downloadPath = "/home/selenium/Downloads";
             LOGGER.info("Using remote download path: " + downloadPath);
         }
+        new File(downloadPath).mkdirs();
         return downloadPath;
     }
 
