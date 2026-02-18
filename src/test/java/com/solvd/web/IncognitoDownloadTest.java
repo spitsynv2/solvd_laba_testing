@@ -89,7 +89,6 @@ public class IncognitoDownloadTest extends AbstractTest {
             downloadPath = "/home/selenium/Downloads";
             LOGGER.info("Using remote download path: " + downloadPath);
         }
-        new File(downloadPath).mkdirs();
         return downloadPath;
     }
 
