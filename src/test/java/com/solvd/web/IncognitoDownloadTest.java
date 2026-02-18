@@ -51,7 +51,7 @@ public class IncognitoDownloadTest extends AbstractTest {
         String seleniumUrl = R.CONFIG.get("selenium_url");
 
         if (seleniumUrl.contains("localhost")) {
-            LOGGER.debug("Skipping artifact retrieval — running on localhost (URL: {})", seleniumUrl);
+            LOGGER.debug("Skipping artifact retrieval - running on localhost (URL: {})", seleniumUrl);
             return;
         }
 
@@ -76,7 +76,7 @@ public class IncognitoDownloadTest extends AbstractTest {
                 LOGGER.error("Failed to save local artifact '{}' to report context.", artifactFileName, e);
             }
         } else {
-            LOGGER.debug("Skipping artifact save — remote run detected (selenium_url: {})", seleniumUrl);
+            LOGGER.debug("Skipping artifact save - remote run detected (selenium_url: {})", seleniumUrl);
         }
     }
 
