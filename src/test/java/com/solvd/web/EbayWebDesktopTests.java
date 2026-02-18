@@ -7,16 +7,12 @@ import com.zebrunner.carina.core.IAbstractTest;
 import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
 import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
 import com.zebrunner.carina.utils.R;
-import com.zebrunner.carina.utils.report.ReportContext;
 import com.zebrunner.carina.utils.report.SessionContext;
 import com.zebrunner.carina.webdriver.CarinaDriver;
 import com.zebrunner.carina.webdriver.IDriverPool;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 import org.openqa.selenium.support.decorators.Decorated;
@@ -32,8 +28,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -46,7 +40,6 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     // Track last test end per thread so we can measure gaps between tests on the same worker
     private static final ConcurrentHashMap<Long, Long> LAST_TEST_END_MS = new ConcurrentHashMap<>();
 
-    // Keep per-test start time (to compute durations)
     private final ThreadLocal<Long> testStartMs = new ThreadLocal<>();
 
     @BeforeMethod(alwaysRun = true)
@@ -141,8 +134,14 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
 
         String downloadPath = prepareDownloadDirectory();
         String sessionId = driver.getSessionId().toString();
-
         MitmProxyClient mitm = MitmProxyClient.fromSeleniumHubAndSession(getSeleniumUrl(), sessionId);
+
+        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
+        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
+
+        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
+        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
+        String expectedItemName = itemPageBase.getItemName();
 
         Path mitmArtifact = null;
         try {
@@ -152,12 +151,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         }
         SessionContext.saveArtifact(mitmArtifact);
 
-        CategoryPageBase electronicsPage = ebayHomePage.selectCategory("Electronics");
-        ComputersTabletsNetworkPageBase computersTabletsNetworkPage = electronicsPage.openComputersTabletsNetworkPage();
-
-        String limitedTimeDealItemName = computersTabletsNetworkPage.getLimitedTimeDealsItemName(position);
-        ItemPageBase itemPageBase = computersTabletsNetworkPage.selectLimitedTimeDealsItem(position);
-        String expectedItemName = itemPageBase.getItemName();
+        pause(10);
 
         Assert.assertEquals(limitedTimeDealItemName, expectedItemName);
     }
@@ -216,7 +210,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
             downloadPath = "/Users/vadymspitsyn/IdeaProjects/solvd_laba_testing/src/test/resources/downloadsV2";
             LOGGER.info("Using local download path: " + downloadPath);
         } else {
-            downloadPath = "/home/selenium/Downloads";
+            downloadPath = "/tmp/selenium/Downloads";
             LOGGER.info("Using remote download path: " + downloadPath);
         }
         new File(downloadPath).mkdirs();
