@@ -42,7 +42,7 @@ public class IncognitoDownloadTest extends AbstractTest {
         LOGGER.info("Waiting for downloads to complete...");
         pause(5);
 
-        String artifactFileName = "pexels-ira-martyniuk-2147702405-34350110.jpg";
+        String artifactFileName = "pexels-david-wilkowski-432252441-29278193.jpg";
         getSessionArtifact(driver, artifactFileName);
         saveFileToReportContext(downloadPath, artifactFileName);
     }
@@ -58,6 +58,7 @@ public class IncognitoDownloadTest extends AbstractTest {
         try {
             File file = ReportContext.getArtifact(driver, artifactFileName);
             LOGGER.info("Remote run detected — artifact '{}' downloaded and attached to session in reporting portal successfully.", file.getName());
+            LOGGER.info("File full path - {}", file.getAbsolutePath());
         } catch (Exception e) {
             LOGGER.error("Failed to retrieve artifact '{}' for driver: {}", artifactFileName, driver, e);
         }
