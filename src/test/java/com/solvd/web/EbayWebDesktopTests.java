@@ -132,7 +132,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         ebayHomePage.open();
         logCurrentDriverInfoUnwrapped();
 
-        String downloadPath = prepareDownloadDirectory();
+        String downloadPath = createDownloadDirectory();
         String sessionId = driver.getSessionId().toString();
         MitmProxyClient mitm = MitmProxyClient.fromSeleniumHubAndSession(getSeleniumUrl(), sessionId);
 
@@ -204,16 +204,16 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         }
     }
 
-    private String prepareDownloadDirectory() {
+    private String createDownloadDirectory() {
         String downloadPath;
         if (R.CONFIG.get("selenium_url").contains("localhost")) {
             downloadPath = "/Users/vadymspitsyn/IdeaProjects/solvd_laba_testing/src/test/resources/downloadsV2";
+            new File(downloadPath).mkdirs();
             LOGGER.info("Using local download path: " + downloadPath);
         } else {
-            downloadPath = "/tmp/selenium/Downloads";
+            downloadPath = "/tmp";
             LOGGER.info("Using remote download path: " + downloadPath);
         }
-        new File(downloadPath).mkdirs();
         return downloadPath;
     }
 

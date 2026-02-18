@@ -20,18 +20,9 @@ public class MitmProxyClient {
         this.authHeaderValue = authHeaderValue;
     }
 
-    /**
-     * Build base URL for MITM handler endpoints according to ESG router:
-     *   /session/:uuid/proxy/:uuid/<endpoint>
-     *
-     * Works for selenium_url like:
-     *   http://host:4444
-     *   http://host:4444/wd/hub
-     *   http://host:4444/wd/hub/
-     */
     public static MitmProxyClient fromSeleniumHubAndSession(URL seleniumHubUrl, String sessionId) {
         String hubBase = normalizeHubBase(seleniumHubUrl.toString());
-        String mitmBase = hubBase + "/session/" + urlEncodePath(sessionId) + "/proxy/" + urlEncodePath(sessionId);
+        String mitmBase = hubBase + "/proxy/" + urlEncodePath(sessionId);
         return new MitmProxyClient(mitmBase);
     }
 
@@ -57,11 +48,7 @@ public class MitmProxyClient {
 
     private static String normalizeHubBase(String seleniumUrl) {
         String s = seleniumUrl.trim();
-        // remove trailing slash
         while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
-
-        // IMPORTANT: MITM endpoints are NOT under /wd/hub, they are at root.
-        // So if selenium_url includes /wd/hub, strip it.
         if (s.endsWith("/wd/hub")) {
             s = s.substring(0, s.length() - "/wd/hub".length());
         }
@@ -190,30 +177,13 @@ public class MitmProxyClient {
         String[] selectors = new String[] { "@all", "all", "*" };
 
         IOException last = null;
+        for (String s : selectors) {
+            try { return downloadHar(s, targetDir); }
+            catch (IOException e) { last = e; }
 
-        for (String sel : selectors) {
-            // 1) Try HAR
-            try {
-                return downloadHar(sel, targetDir);
-            } catch (IOException e) {
-                last = enrich(e, "HAR failed for selector '" + sel + "'");
-            }
-
-            // 2) Try DUMP
-            try {
-                return downloadDump(sel, targetDir);
-            } catch (IOException e) {
-                last = enrich(e, "DUMP failed for selector '" + sel + "'");
-            }
+            try { return downloadDump(s, targetDir); }
+            catch (IOException e) { last = e; }
         }
-
         throw last != null ? last : new IOException("Unable to export HAR/DUMP using known selectors");
     }
-
-    private static IOException enrich(IOException e, String msg) {
-        IOException wrapped = new IOException(msg + ": " + e.getMessage(), e);
-        wrapped.setStackTrace(e.getStackTrace());
-        return wrapped;
-    }
-
 }
