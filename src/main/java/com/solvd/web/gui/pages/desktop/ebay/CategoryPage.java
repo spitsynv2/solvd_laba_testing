@@ -31,7 +31,7 @@ public class CategoryPage extends CategoryPageBase {
         Assert.assertEquals(electronicsPageTitle.getText(), "Electronics", "Electronics category page is not opened");
 
         ExtendedWebElement computersTabletsNetworkLink = findExtendedWebElement(By.
-                xpath("/html/body/div[2]/div[2]/section[3]/section[1]/div[2]/ul/li[1]/div/a/div[2]/span"));
+                xpath("/html/body/div[3]/div[3]/section[3]/section[1]/div[2]/ul/li[1]/div/a/div[2]/span"));
         computersTabletsNetworkLink.click(5);
         return initPage(getDriver(), ComputersTabletsNetworkPageBase.class);
     }
