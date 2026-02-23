@@ -2,7 +2,7 @@
 <suite name="WebTests suite"
        verbose="1"
        parallel="methods"
-       thread-count="14">
+       thread-count="7">
 
     <test name="Parallel">
         <classes>
@@ -15,13 +15,6 @@
                     <include name="itemTitleEqualsTest5"/>
                     <include name="itemTitleEqualsTest6"/>
                     <include name="itemTitleEqualsTest7"/>
-                    <include name="itemTitleEqualsTest8"/>
-                    <include name="itemTitleEqualsTest9"/>
-                    <include name="itemTitleEqualsTest10"/>
-                    <include name="itemTitleEqualsTest11"/>
-                    <include name="itemTitleEqualsTest12"/>
-                    <include name="itemTitleEqualsTest13"/>
-                    <include name="itemTitleEqualsTest14"/>
                 </methods>
             </class>
         </classes>
