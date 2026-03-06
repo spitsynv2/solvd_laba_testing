@@ -8,6 +8,7 @@ import com.zebrunner.carina.dataprovider.IAbstractDataProvider;
 import com.zebrunner.carina.webdriver.CarinaDriver;
 import com.zebrunner.carina.webdriver.IDriverPool;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
@@ -183,6 +184,7 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
         LOGGER.info("BEFORE START DRIVER LOGS - END");
 
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
+        getDriver().manage().window().setSize(new Dimension(1920,1080));
         ebayHomePage.open();
 
         LOGGER.info("AFTER START DRIVER LOGS - START");
