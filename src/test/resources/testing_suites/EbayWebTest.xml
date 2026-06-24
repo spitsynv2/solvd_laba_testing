@@ -2,9 +2,7 @@
 <suite name="WebTests suite"
        verbose="1"
        parallel="methods"
-       thread-count="1">
-
-    <parameter name="jenkinsNodeLabel" value="DEV-USE1-ZEBRUNNER-SLAVE-01"/>       
+       thread-count="1">      
 
     <test name="Parallel"
           parallel="methods"
