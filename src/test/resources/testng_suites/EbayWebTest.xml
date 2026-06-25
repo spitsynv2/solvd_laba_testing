@@ -7,6 +7,7 @@
     <parameter name="jenkinsNodeLabel" value="DEV-USE1-ZEBRUNNER-SLAVE-01"/>
     <parameter name="SuitOwner" value="vs"/>
     <parameter name="jenkinsJobType" value="Web"/>
+    <parameter name="jenkinsJobName" value="vs-simple-web-test"/>
 
     <test name="Parallel"
           parallel="methods"
