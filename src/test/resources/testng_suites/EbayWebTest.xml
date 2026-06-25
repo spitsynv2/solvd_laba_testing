@@ -4,7 +4,9 @@
        parallel="methods"
        thread-count="1">
 
-    <parameter name="jenkinsNodeLabel" value="DEV-USE1-ZEBRUNNER-SLAVE-01"/>       
+    <parameter name="jenkinsNodeLabel" value="DEV-USE1-ZEBRUNNER-SLAVE-01"/>
+    <parameter name="SuitOwner" value="vs"/>
+    <parameter name="jenkinsJobType" value="Web"/>
 
     <test name="Parallel"
           parallel="methods"
