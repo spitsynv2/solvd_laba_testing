@@ -2,7 +2,11 @@
 <suite name="WebTests suite"
        verbose="1"
        parallel="methods"
-       thread-count="1">      
+       thread-count="1">
+
+    <parameter name="SuitOwner" value="vs"/>
+    <parameter name="jenkinsJobType" value="Web"/>
+    <parameter name="jenkinsJobName" value="vs-simple-web-test-without-param"/>
 
     <test name="Parallel"
           parallel="methods"
