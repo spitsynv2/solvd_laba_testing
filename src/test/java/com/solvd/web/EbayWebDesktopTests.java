@@ -123,6 +123,9 @@ public class EbayWebDesktopTests implements IAbstractTest, IAbstractDataProvider
     public void itemTitleEqualsTestSingle3(String TUID, int position) { runSameFlow(position); }
 
     private void runSameFlow(int position) {
+        long maxHeapMb = Runtime.getRuntime().maxMemory() / 1024 / 1024;
+        LOGGER.info("Test JVM max heap: " + maxHeapMb + " MB");
+
         EbayHomePageBase ebayHomePage = initPage(getDriver(), EbayHomePageBase.class);
         getDriver().manage().window().setSize(new Dimension(1920,1080));
         ebayHomePage.open();
