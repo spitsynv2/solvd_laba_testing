@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite verbose="1" name="WebDriverBaseline suite" parallel="methods" thread-count="1">
+
+    <test name="WebDriver baseline test">
+        <classes>
+            <class name="com.solvd.web.WebDriverBaselineTests">
+                <methods>
+                    <include name="webDriverBasicCommandsTest"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+
+</suite>
