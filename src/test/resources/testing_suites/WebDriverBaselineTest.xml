@@ -1,5 +1,6 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite verbose="1" name="WebDriverBaseline suite" parallel="methods" thread-count="1">
+    <parameter name="jenkinsNodeLabel" value="DEV-USE1-ZEBRUNNER-SLAVE-01"/>
 
     <test name="WebDriver baseline test">
         <classes>
