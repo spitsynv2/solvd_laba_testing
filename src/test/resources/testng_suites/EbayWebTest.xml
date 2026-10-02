@@ -3,6 +3,7 @@
        verbose="1"
        parallel="methods"
        thread-count="1">
+    <parameter name="jenkinsJobType" value="web"/>
 
     <test name="Parallel"
           parallel="methods"
