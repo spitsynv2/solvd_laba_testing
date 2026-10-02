@@ -19,7 +19,7 @@ ext {
     carinaAzureVersion = '1.2.5'
     carinaAppcenterVersion = '1.2.7'
     zebrunnerAgentVersion = '1.9.8'
-    suiteName = project.hasProperty('suite') ? project.getProperty('suite') : 'WebDriverBaselineTests'
+    suiteName = project.hasProperty('suite') ? project.getProperty('suite') : 'WebDriverBaselineTest'
 }
 
 dependencies {
